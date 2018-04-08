@@ -43,6 +43,71 @@ namespace SPICA.Formats.Generic.UnityAnim
                 AddRotationCurve(Elem);
             }
             
+            H3DModel Model = Scene.Models[MdlIndex];
+            
+            foreach (H3DAnimationElement Elem in MatAnim.Elements)
+            {
+                H3DAnimVector2D content = (H3DAnimVector2D) Elem.Content;
+                
+                int MatIndex = Model.Materials.Find(Elem.Name);
+                H3DMaterial Mat = Model.Materials[MatIndex];
+
+                int MeshIndex = Model.Meshes.FindIndex(mesh => mesh.MaterialIndex == MatIndex);
+                int NodeIndex = Model.Meshes.Find(mesh => mesh.MaterialIndex == MatIndex).NodeIndex;
+                string Path = Model.MeshNodesTree.Find(NodeIndex) + $"_{MeshIndex}_0_node";
+
+                ANIMCurve<float> tilingX = new ANIMCurve<float>(Path, "material._MainTex_ST.x");
+                ANIMCurve<float> tilingY = new ANIMCurve<float>(Path, "material._MainTex_ST.y");
+                ANIMCurve<float> offsetX = new ANIMCurve<float>(Path, "material._MainTex_ST.z");
+                ANIMCurve<float> offsetY = new ANIMCurve<float>(Path, "material._MainTex_ST.w");
+                
+                tilingX.Add(0, Mat.MaterialParams.TextureCoords[0].Scale.X);
+                tilingY.Add(0, Mat.MaterialParams.TextureCoords[0].Scale.Y);
+
+                foreach (KeyFrame keyFrame in content.X.KeyFrames)
+                    offsetX.Add(new ANIMKeyFrame<float>(
+                        keyFrame.Frame / 30f,
+                        -(keyFrame.Value * Mat.MaterialParams.TextureCoords[0].Scale.X),
+                        float.PositiveInfinity, float.PositiveInfinity
+                    ));
+
+                foreach (KeyFrame keyFrame in content.Y.KeyFrames)
+                    offsetY.Add(new ANIMKeyFrame<float>(
+                        keyFrame.Frame / 30f,
+                        -(keyFrame.Value * Mat.MaterialParams.TextureCoords[0].Scale.Y),
+                        float.PositiveInfinity, float.PositiveInfinity
+                    ));
+
+                Clip.floatCurves.AddRange(new []{tilingX, tilingY, offsetX, offsetY});
+                
+                break;
+            }
+
+            for (var i = 0; i < Model.Meshes.Count; i++)
+            {
+                H3DMesh Mesh = Model.Meshes[i];
+                string NodeName = Model.MeshNodesTree.Find(Mesh.NodeIndex);
+                H3DMaterial Mat = Model.Materials[Mesh.MaterialIndex];
+                
+                if(MatAnim.Elements.Find(x => x.Name == Mat.Name) != null)
+                    continue;
+                
+                string Path = $"{NodeName}_{i}_0_node";
+                
+                ANIMCurve<float> tilingX = new ANIMCurve<float>(Path, "material._MainTex_ST.x");
+                ANIMCurve<float> tilingY = new ANIMCurve<float>(Path, "material._MainTex_ST.y");
+                ANIMCurve<float> offsetX = new ANIMCurve<float>(Path, "material._MainTex_ST.z");
+                ANIMCurve<float> offsetY = new ANIMCurve<float>(Path, "material._MainTex_ST.w");
+                
+                tilingX.Add(0, Mat.MaterialParams.TextureCoords[0].Scale.X);
+                tilingY.Add(0, Mat.MaterialParams.TextureCoords[0].Scale.Y);
+                offsetX.Add(0, 0);
+                offsetY.Add(0, 0);
+                
+                Clip.floatCurves.AddRange(new []{tilingX, tilingY, offsetX, offsetY});
+            }
+            
+
             Clip.positionCurves.ForEach(CalculateSlopes);
             Clip.scaleCurves.ForEach(CalculateSlopes);
             Clip.eulerCurves.ForEach(x => CorrectRotation(x));
@@ -276,9 +341,31 @@ namespace SPICA.Formats.Generic.UnityAnim
             SB.AppendLine("  m_EulerCurves:");
             AppendVec3Curve(SB, Clip.eulerCurves, 0);
             
+            SB.AppendLine("  m_FloatCurves:");
+            AppendFloatCurve(SB, Clip.floatCurves);
+
             File.WriteAllText(FileName, SB.ToString());
         }
 
+        private void AppendFloatCurve(StringBuilder SB, List<ANIMCurve<float>> curves)
+        {
+            foreach (ANIMCurve<float> curve in curves)
+            {
+                SB.AppendLine($"  - path: {curve.path}");
+                SB.AppendLine($"    attribute: {curve.attribute}");
+                SB.AppendLine($"    classID: 137");
+                SB.AppendLine($"    curve:");
+                SB.AppendLine($"      m_Curve:");
+                foreach (ANIMKeyFrame<float> keyFrame in curve.keyFrames)
+                {
+                    SB.AppendLine($"      - time: {keyFrame.time}");
+                    SB.AppendLine($"        value: {keyFrame.value}");
+                    SB.AppendLine($"        inSlope: {keyFrame.inSlope}");
+                    SB.AppendLine($"        outSlope: {keyFrame.outSlope}");
+                }
+            }
+        }
+        
         private void AppendVec3Curve(StringBuilder SB, List<ANIMCurve<Vector3>> curves, int rotationOrder)
         {
             foreach (ANIMCurve<Vector3> curve in curves)
