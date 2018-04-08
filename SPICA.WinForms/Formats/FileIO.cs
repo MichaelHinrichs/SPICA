@@ -3,7 +3,7 @@ using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.Formats.Generic.COLLADA;
 using SPICA.Formats.Generic.StudioMdl;
-using SPICA.Formats.GFL2.Model;
+using SPICA.Formats.Generic.UnityAnim;
 using SPICA.Rendering;
 
 using System.IO;
@@ -75,7 +75,8 @@ namespace SPICA.WinForms.Formats
                 SaveDlg.Filter = 
                     "COLLADA 1.4.1|*.dae|" +
                     "Valve StudioMdl|*.smd|" +
-                    "Binary Ctr H3D|*.bch";
+                    "Binary Ctr H3D|*.bch|" +
+                    "Unity Animation|*.anim";
 
                 SaveDlg.FileName = "Model";
 
@@ -89,6 +90,7 @@ namespace SPICA.WinForms.Formats
                         case 1: new DAE(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
                         case 2: new SMD(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
                         case 3: H3D.Save(SaveDlg.FileName, Scene); break;
+                        case 4: new ANIM(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
                     }
                 }
             }

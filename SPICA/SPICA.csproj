@@ -316,6 +316,10 @@
     <Compile Include="Formats\Generic\StudioMdl\SMDBone.cs" />
     <Compile Include="Formats\Generic\StudioMdl\SMDMesh.cs" />
     <Compile Include="Formats\Generic\StudioMdl\SMDNode.cs" />
+    <Compile Include="Formats\Generic\UnityAnim\ANIM.cs" />
+    <Compile Include="Formats\Generic\UnityAnim\ANIMAnimationClip.cs" />
+    <Compile Include="Formats\Generic\UnityAnim\ANIMCurve.cs" />
+    <Compile Include="Formats\Generic\UnityAnim\ANIMKeyFrame.cs" />
     <Compile Include="Formats\Generic\WavefrontOBJ\OBJ.cs" />
     <Compile Include="Formats\Generic\WavefrontOBJ\OBJMesh.cs" />
     <Compile Include="Formats\GFL2\GFModelPack.cs" />
