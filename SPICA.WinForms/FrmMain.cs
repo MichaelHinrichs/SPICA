@@ -204,16 +204,19 @@ namespace SPICA.WinForms
             {
                 if ((e.Button & MouseButtons.Left) != 0)
                 {
-                    float X = (float)(((e.X - InitialMov.X) / Width)  * Math.PI);
+                    float X = (float)(((e.X - InitialMov.X) / Width)  * Math.PI * 2);
                     float Y = (float)(((e.Y - InitialMov.Y) / Height) * Math.PI);
 
-                    Transform.Row3.Xyz -= Translation;
+                    //Transform.Row3.Xyz -= Translation;
 
                     Transform *=
+                        Matrix4.CreateTranslation(-Vector3.UnitZ * Translation.Z) *
+                        Matrix4.CreateFromAxisAngle(Transform.Row1.Xyz, X) *
                         Matrix4.CreateRotationX(Y) *
-                        Matrix4.CreateRotationY(X);
+                        //Matrix4.CreateRotationY(X);
+                        Matrix4.CreateTranslation(Vector3.UnitZ * Translation.Z);
 
-                    Transform.Row3.Xyz += Translation;
+                    //Transform.Row3.Xyz += Translation;
                 }
 
                 if ((e.Button & MouseButtons.Right) != 0)
@@ -268,7 +271,11 @@ namespace SPICA.WinForms
 
         private void Viewport_Resize(object sender, EventArgs e)
         {
-            Renderer?.Resize(Viewport.Width, Viewport.Height);
+            if (Renderer != null)
+            {
+                Renderer.Resize(Viewport.Width, Viewport.Height);
+                Renderer.Camera.ViewMatrix = Transform;
+            }
 
             UpdateViewport();
         }
