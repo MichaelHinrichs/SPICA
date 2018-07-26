@@ -74,7 +74,11 @@ namespace SPICA.WinForms.Formats
                     "Valve StudioMdl|*.smd|" +
                     "Binary Ctr H3D|*.bch";
 
-                SaveDlg.FileName = "Model";
+                //Offer to save using model name if possible
+                if (State.ModelIndex > -1)
+                    SaveDlg.FileName = Scene.Models[State.ModelIndex].Name;
+                else
+                    SaveDlg.FileName = "Model";
 
                 if (SaveDlg.ShowDialog() == DialogResult.OK)
                 {
