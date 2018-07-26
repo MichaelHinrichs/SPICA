@@ -79,11 +79,11 @@ namespace SPICA.WinForms
         
         private void FileOpen(string[] Files, bool MergeMode)
         {
-            if (!MergeMode)
+            if (!MergeMode) //if not merging in a model
             {
-                Renderer.DeleteAll();
+                Renderer.DeleteAll();   //clear existing meshes
 
-                Renderer.Lights.Add(new Light()
+                Renderer.Lights.Add(new Light() //add a new light to the {scene/renderer}
                 {
                     Ambient         = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
                     Diffuse         = new Color4(0.9f, 0.9f, 0.9f, 1.0f),
@@ -303,6 +303,24 @@ namespace SPICA.WinForms
         private void MenuShowSide_Click(object sender, EventArgs e)
         {
             ToggleSide();
+        }
+
+        private void MenuReloadModel_Click(object sender, EventArgs e)
+        {
+            if (Scene == null) return;
+            Renderer.DeleteAll();   //clear existing meshes
+
+            Renderer.Lights.Add(new Light() //add a new light to the {scene/renderer}
+            {
+                Ambient = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
+                Diffuse = new Color4(0.9f, 0.9f, 0.9f, 1.0f),
+                Specular0 = new Color4(0.8f, 0.8f, 0.8f, 1.0f),
+                Specular1 = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                TwoSidedDiffuse = true,
+                Enabled = true
+            });
+            Renderer.Merge(Scene);
+            UpdateViewport();
         }
         #endregion
 
