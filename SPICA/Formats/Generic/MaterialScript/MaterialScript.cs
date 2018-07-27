@@ -111,18 +111,18 @@ namespace SPICA.Formats.Generic.MaterialScript
                     stageC = 1;
                     foreach (PICATexEnvStage stage in Mtl.MaterialParams.TexEnvStages)
                     {
-                        if (stage.IsColorPassThrough) continue;     //if passthrough stage, skip
-                        if (stage.UpdateColorBuffer)                //if "UpdateBuffer"
+                        if (stage.IsColorPassThrough) continue;                                 //if passthrough stage, skip
+                        if (stage.UpdateColorBuffer)                                            //if this stage updates the color Buffer
                         {
-                            mat.Append("buffer = copy(map)\n");     //store copy of composite as "buffer"
-                            if (stage.Source.Color[0] != PICATextureCombinerSource.Previous)    //if stage is not using previous, start a new composite map  //TODO: Check for "Previous" in 1 or 2
-                            {
-                                mat.Append("map = compositeMap()\n");
+                            mat.Append("buffer = copy(map)\n");                                 //  store copy of composite map as "buffer"
+                            if (stage.Source.Color[0] != PICATextureCombinerSource.Previous)    //  if current stage is not using previous   //TODO: Check for "Previous" in 1 or 2
+                            {                                                                       
+                                mat.Append("map = compositeMap()\n");                           //    start a new composite map
                                 stageC = 1;
                             }
                         }
 
-                        //assign the stage's const
+                        //assign the stage's const  //TODO: this isn't always the right color, figure out when to us MaterialParams.Constant#Color instead
                         mat.Append($"const = rgbMult color1: [{stage.Color.R},{stage.Color.G},{stage.Color.B}]");
 
                         //create layers based on combiner type //TODO: put more comments here
@@ -205,6 +205,7 @@ namespace SPICA.Formats.Generic.MaterialScript
         private string ChannelSelectColor(PICATexEnvStage stage, int srcIdx, StringBuilder mat)
         {
             //TODO: add Max vertex alpha workaround
+            //TODO: don't color correct constants, just make new ones
             if (stage.Operand.Color[srcIdx] != PICATextureCombinerColorOp.Color)
             {
                 mat.Append(  "ccmap = ColorCorrection()\n"

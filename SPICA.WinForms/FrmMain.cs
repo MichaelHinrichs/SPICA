@@ -64,6 +64,7 @@ namespace SPICA.WinForms
 
             MainContainer.Panel1.Controls.Add(Viewport);
 
+            //replace menu and button renderers with a new one?
             TopMenu.Renderer   = new ToolsRenderer(TopMenu.BackColor);
             TopIcons.Renderer  = new ToolsRenderer(TopIcons.BackColor);
             SideIcons.Renderer = new ToolsRenderer(SideIcons.BackColor);
@@ -77,61 +78,9 @@ namespace SPICA.WinForms
 
             SaveSettings();
         }
-        
-        private void FileOpen(string[] Files, bool MergeMode)
-        {
-            if (!MergeMode) //if not merging in a model
-            {
-                Renderer.DeleteAll();   //clear existing meshes
+        #endregion
 
-                Renderer.Lights.Add(new Light() //add a new light to the {scene/renderer}
-                {
-                    Ambient         = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
-                    Diffuse         = new Color4(0.9f, 0.9f, 0.9f, 1.0f),
-                    Specular0       = new Color4(0.8f, 0.8f, 0.8f, 1.0f),
-                    Specular1       = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
-                    TwoSidedDiffuse = true,
-                    Enabled         = true
-                });
-
-                ResetTransforms();
-
-                Scene = FileIO.Merge(Files, Renderer);
-
-                TextureManager.Textures = Scene.Textures;
-
-                ModelsList.Bind(Scene.Models);
-                TexturesList.Bind(Scene.Textures);
-                CamerasList.Bind(Scene.Cameras);
-                LightsList.Bind(Scene.Lights);
-                SklAnimsList.Bind(Scene.SkeletalAnimations);
-                MatAnimsList.Bind(Scene.MaterialAnimations);
-                VisAnimsList.Bind(Scene.VisibilityAnimations);
-                CamAnimsList.Bind(Scene.CameraAnimations);
-
-                Animator.Enabled     = false;
-                LblAnimSpeed.Text    = string.Empty;
-                LblAnimLoopMode.Text = string.Empty;
-                AnimSeekBar.Value    = 0;
-                AnimSeekBar.Maximum  = 0;
-                AnimGrp.Frame        = 0;
-                AnimGrp.FramesCount  = 0;
-
-                if (Scene.Models.Count > 0)
-                {
-                    ModelsList.Select(0);
-                }
-                else
-                {
-                    UpdateTransforms();
-                }
-            }
-            else
-            {
-                Scene = FileIO.Merge(Files, Renderer, Scene);
-            }
-        }
-        
+        #region Main frame events
         private void FrmMain_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -149,22 +98,6 @@ namespace SPICA.WinForms
                 FileOpen(Files, ModifierKeys.HasFlag(Keys.Alt) && Scene != null);
                 UpdateViewport();
             }
-        }
-
-        private void LoadSettings()
-        {
-            if (Settings.Default.RenderShowGrid) ToggleGrid();
-            if (Settings.Default.RenderShowAxis) ToggleAxis();
-            if (Settings.Default.UIShowSideMenu) ToggleSide();
-        }
-
-        private void SaveSettings()
-        {
-            Settings.Default.RenderShowGrid = Menu_Options_Renderer_ShowGrid.Checked;
-            Settings.Default.RenderShowAxis = Menu_Options_Renderer_ShowAxis.Checked;
-            Settings.Default.UIShowSideMenu = Menu_Options_UserInterface_ShowSide.Checked;
-
-            Settings.Default.Save();
         }
         #endregion
 
@@ -282,7 +215,7 @@ namespace SPICA.WinForms
         }
         #endregion
 
-        #region Menu items
+        #region Menu item events
             #region File
             private void Menu_File_Open__Click(object sender, EventArgs e)
             {
@@ -352,7 +285,7 @@ namespace SPICA.WinForms
             #endregion
         #endregion
 
-        #region Tool buttons and Menus
+        #region Button events
         private void TBtnOpen_Click(object sender, EventArgs e)
         {
             Open(false);
@@ -383,97 +316,12 @@ namespace SPICA.WinForms
             ToggleSide();
         }
 
-        private void ToggleGrid()
-        {
-            bool State = !Menu_Options_Renderer_ShowGrid.Checked;
-
-            Menu_Options_Renderer_ShowGrid.Checked = State;
-            TBtnShowGrid.Checked = State;
-            UIGrid.Visible       = State;
-
-            UpdateViewport();
-        }
-
-        private void ToggleAxis()
-        {
-            bool State = !Menu_Options_Renderer_ShowAxis.Checked;
-
-            Menu_Options_Renderer_ShowAxis.Checked = State;
-            TBtnShowAxis.Checked = State;
-            UIAxis.Visible       = State;
-
-            UpdateViewport();
-        }
-
-        private void ToggleSide()
-        {
-            bool State = !Menu_Options_UserInterface_ShowSide.Checked;
-
-            Menu_Options_UserInterface_ShowSide.Checked          =  State;
-            TBtnShowSide.Checked          =  State;
-            MainContainer.Panel2Collapsed = !State;
-        }
 
         private void ToolButtonExport_Click(object sender, EventArgs e)
         {
             FileIO.Export(Scene, TexturesList.SelectedIndex);
         }
 
-        private void Open(bool MergeMode)
-        {
-            IgnoreClicks = true;
-
-            using (OpenFileDialog OpenDlg = new OpenFileDialog())
-            {
-                OpenDlg.Filter = "All files|*.*";
-                OpenDlg.Multiselect = true;
-
-                if (OpenDlg.ShowDialog() == DialogResult.OK && OpenDlg.FileNames.Length > 0)
-                {
-                    FileOpen(OpenDlg.FileNames, MergeMode);
-                }
-            }
-
-            //Allow app to process click from the Open dialog that goes into the Viewport.
-            //This avoid the model from moving after opening a file on the dialog.
-            //(Note: The problem only happens if the dialog is on top of the Viewport).
-            Application.DoEvents();
-
-            IgnoreClicks = false;
-
-            UpdateViewport();
-        }
-
-        private void Save()
-        {
-            FileIO.Save(Scene, new SceneState
-            {
-                ModelIndex   = ModelsList.SelectedIndex,
-                SklAnimIndex = SklAnimsList.SelectedIndex,
-                MatAnimIndex = MatAnimsList.SelectedIndex
-            });
-        }
-
-        private void ResetTransforms()
-        {
-            MdlCenter = Vector3.Zero;
-
-            Dimension = 100;
-
-            Transform =
-                Matrix4.CreateRotationY((float)Math.PI * 0.25f) *
-                Matrix4.CreateRotationX((float)Math.PI * 0.25f) *
-                Matrix4.CreateTranslation(0, 0, -200);
-        }
-
-        private void UpdateTransforms()
-        {
-            Renderer.Camera.ViewMatrix = Transform;
-
-            UIAxis.Transform = Matrix4.CreateTranslation(-MdlCenter);
-
-            UpdateViewport();
-        }
         #endregion
 
         #region Side menu events
@@ -495,6 +343,7 @@ namespace SPICA.WinForms
 
                 Dimension *= 2;
 
+                //TODO: don't move camera when changing models
                 Translation = new Vector3(0, 0, -Dimension);
 
                 Transform =
@@ -789,6 +638,167 @@ namespace SPICA.WinForms
         private void AnimSeekBar_MouseUp(object sender, MouseEventArgs e)
         {
             AnimGrp.Continue();
+        }
+        #endregion
+
+        //TODO: sort these
+        #region Unsorted Functions 
+        private void Open(bool MergeMode)
+        {
+            IgnoreClicks = true;
+
+            using (OpenFileDialog OpenDlg = new OpenFileDialog())
+            {
+                OpenDlg.Filter = "All files|*.*";
+                OpenDlg.Multiselect = true;
+
+                if (OpenDlg.ShowDialog() == DialogResult.OK && OpenDlg.FileNames.Length > 0)
+                {
+                    FileOpen(OpenDlg.FileNames, MergeMode);
+                }
+            }
+
+            //Allow app to process click from the Open dialog that goes into the Viewport.
+            //This avoid the model from moving after opening a file on the dialog.
+            //(Note: The problem only happens if the dialog is on top of the Viewport).
+            Application.DoEvents();
+
+            IgnoreClicks = false;
+
+            UpdateViewport();
+        }
+
+        private void FileOpen(string[] Files, bool MergeMode)
+        {
+            if (!MergeMode) //if not merging in a model
+            {
+                Renderer.DeleteAll();   //clear existing meshes
+
+                Renderer.Lights.Add(new Light() //add a new light to the {scene/renderer}
+                {
+                    Ambient = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
+                    Diffuse = new Color4(0.9f, 0.9f, 0.9f, 1.0f),
+                    Specular0 = new Color4(0.8f, 0.8f, 0.8f, 1.0f),
+                    Specular1 = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                    TwoSidedDiffuse = true,
+                    Enabled = true
+                });
+
+                ResetTransforms();
+
+                Scene = FileIO.Merge(Files, Renderer);
+
+                TextureManager.Textures = Scene.Textures;
+
+                ModelsList.Bind(Scene.Models);
+                TexturesList.Bind(Scene.Textures);
+                CamerasList.Bind(Scene.Cameras);
+                LightsList.Bind(Scene.Lights);
+                SklAnimsList.Bind(Scene.SkeletalAnimations);
+                MatAnimsList.Bind(Scene.MaterialAnimations);
+                VisAnimsList.Bind(Scene.VisibilityAnimations);
+                CamAnimsList.Bind(Scene.CameraAnimations);
+
+                Animator.Enabled = false;
+                LblAnimSpeed.Text = string.Empty;
+                LblAnimLoopMode.Text = string.Empty;
+                AnimSeekBar.Value = 0;
+                AnimSeekBar.Maximum = 0;
+                AnimGrp.Frame = 0;
+                AnimGrp.FramesCount = 0;
+
+                if (Scene.Models.Count > 0)
+                {
+                    //TODO: if not moving camera on model select, move camera to default pos here
+                    ModelsList.Select(0);
+                }
+                else
+                {
+                    UpdateTransforms();
+                }
+            }
+            else
+            {
+                Scene = FileIO.Merge(Files, Renderer, Scene);
+            }
+        }
+
+        private void Save()
+        {
+            FileIO.Save(Scene, new SceneState
+            {
+                ModelIndex = ModelsList.SelectedIndex,
+                SklAnimIndex = SklAnimsList.SelectedIndex,
+                MatAnimIndex = MatAnimsList.SelectedIndex
+            });
+        }
+
+        private void ResetTransforms()
+        {
+            MdlCenter = Vector3.Zero;
+
+            Dimension = 100;
+
+            Transform =
+                Matrix4.CreateRotationY((float)Math.PI * 0.25f) *
+                Matrix4.CreateRotationX((float)Math.PI * 0.25f) *
+                Matrix4.CreateTranslation(0, 0, -200);
+        }
+
+        private void UpdateTransforms()
+        {
+            Renderer.Camera.ViewMatrix = Transform;
+
+            UIAxis.Transform = Matrix4.CreateTranslation(-MdlCenter);
+
+            UpdateViewport();
+        }
+
+        private void ToggleGrid()
+        {
+            bool State = !Menu_Options_Renderer_ShowGrid.Checked;
+
+            Menu_Options_Renderer_ShowGrid.Checked = State;
+            TBtnShowGrid.Checked = State;
+            UIGrid.Visible = State;
+
+            UpdateViewport();
+        }
+
+        private void ToggleAxis()
+        {
+            bool State = !Menu_Options_Renderer_ShowAxis.Checked;
+
+            Menu_Options_Renderer_ShowAxis.Checked = State;
+            TBtnShowAxis.Checked = State;
+            UIAxis.Visible = State;
+
+            UpdateViewport();
+        }
+
+        private void ToggleSide()
+        {
+            bool State = !Menu_Options_UserInterface_ShowSide.Checked;
+
+            Menu_Options_UserInterface_ShowSide.Checked = State;
+            TBtnShowSide.Checked = State;
+            MainContainer.Panel2Collapsed = !State;
+        }
+
+        private void LoadSettings()
+        {
+            if (Settings.Default.RenderShowGrid) ToggleGrid();
+            if (Settings.Default.RenderShowAxis) ToggleAxis();
+            if (Settings.Default.UIShowSideMenu) ToggleSide();
+        }
+
+        private void SaveSettings()
+        {
+            Settings.Default.RenderShowGrid = Menu_Options_Renderer_ShowGrid.Checked;
+            Settings.Default.RenderShowAxis = Menu_Options_Renderer_ShowAxis.Checked;
+            Settings.Default.UIShowSideMenu = Menu_Options_UserInterface_ShowSide.Checked;
+
+            Settings.Default.Save();
         }
         #endregion
     }
