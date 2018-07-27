@@ -52,6 +52,7 @@ namespace SPICA.WinForms
                 VSync = true
             };
 
+            //register viewport events
             Viewport.Load       += Viewport_Load;
             Viewport.Paint      += Viewport_Paint;
             Viewport.MouseDown  += Viewport_MouseDown;
@@ -159,9 +160,9 @@ namespace SPICA.WinForms
 
         private void SaveSettings()
         {
-            Settings.Default.RenderShowGrid = MenuShowGrid.Checked;
-            Settings.Default.RenderShowAxis = MenuShowAxis.Checked;
-            Settings.Default.UIShowSideMenu = MenuShowSide.Checked;
+            Settings.Default.RenderShowGrid = Menu_Options_Renderer_ShowGrid.Checked;
+            Settings.Default.RenderShowAxis = Menu_Options_Renderer_ShowAxis.Checked;
+            Settings.Default.UIShowSideMenu = Menu_Options_UserInterface_ShowSide.Checked;
 
             Settings.Default.Save();
         }
@@ -282,53 +283,73 @@ namespace SPICA.WinForms
         #endregion
 
         #region Menu items
-        private void MenuOpenFile_Click(object sender, EventArgs e)
-        {
-            TBtnOpen_Click(sender, e);
-        }
-
-        private void MenuMergeFiles_Click(object sender, EventArgs e)
-        {
-            TBtnMerge_Click(sender, e);
-        }
-
-        private void MenuBatchExport_Click(object sender, EventArgs e)
-        {
-            new FrmExport().Show();
-        }
-
-        private void MenuShowGrid_Click(object sender, EventArgs e)
-        {
-            ToggleGrid();
-        }
-
-        private void MenuShowAxis_Click(object sender, EventArgs e)
-        {
-            ToggleAxis();
-        }
-
-        private void MenuShowSide_Click(object sender, EventArgs e)
-        {
-            ToggleSide();
-        }
-
-        private void MenuReloadModel_Click(object sender, EventArgs e)
-        {
-            if (Scene == null) return;
-            Renderer.DeleteAll();   //clear existing meshes
-
-            Renderer.Lights.Add(new Light() //add a new light to the {scene/renderer}
+            #region File
+            private void Menu_File_Open__Click(object sender, EventArgs e)
             {
-                Ambient = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
-                Diffuse = new Color4(0.9f, 0.9f, 0.9f, 1.0f),
-                Specular0 = new Color4(0.8f, 0.8f, 0.8f, 1.0f),
-                Specular1 = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
-                TwoSidedDiffuse = true,
-                Enabled = true
-            });
-            Renderer.Merge(Scene);
-            UpdateViewport();
-        }
+                TBtnOpen_Click(sender, e);
+            }
+
+            private void Menu_File_Merge__Click(object sender, EventArgs e)
+            {
+                TBtnMerge_Click(sender, e);
+            }
+
+            private void Menu_File_BatchExport__Click(object sender, EventArgs e)
+            {
+                new FrmExport().Show();
+            }
+
+            private void Menu_File_Quit__Click(object sender, EventArgs e)
+            {
+                Application.Exit();
+            }
+            #endregion
+
+            #region Options
+            private void Menu_Options_Renderer_ShowGrid__Click(object sender, EventArgs e)
+            {
+                ToggleGrid();
+            }
+
+            private void Menu_Options_Renderer_ShowAxis__Click(object sender, EventArgs e)
+            {
+                ToggleAxis();
+            }
+
+            private void Menu_Options_UserInterface_ShowSide__Click(object sender, EventArgs e)
+            {
+                ToggleSide();
+            }
+
+            private void Menu_Options_Debug_ReloadModel__Click(object sender, EventArgs e)
+            {
+                if (Scene == null) return;
+                Renderer.DeleteAll();   //clear existing meshes
+
+                Renderer.Lights.Add(new Light() //add a new light to the {scene/renderer}
+                {
+                    Ambient = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
+                    Diffuse = new Color4(0.9f, 0.9f, 0.9f, 1.0f),
+                    Specular0 = new Color4(0.8f, 0.8f, 0.8f, 1.0f),
+                    Specular1 = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                    TwoSidedDiffuse = true,
+                    Enabled = true
+                });
+                Renderer.Merge(Scene);
+                UpdateViewport();
+            }
+            #endregion
+
+            #region Help
+            private void Menu_Help_About__Click(object sender, EventArgs e)
+            {
+                MessageBox.Show(
+                    "SPICA\n An experimental H3D tool for serializing/deserializing BCH.\n By gdkchan and friends.",
+                    "About",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            #endregion
         #endregion
 
         #region Tool buttons and Menus
@@ -364,9 +385,9 @@ namespace SPICA.WinForms
 
         private void ToggleGrid()
         {
-            bool State = !MenuShowGrid.Checked;
+            bool State = !Menu_Options_Renderer_ShowGrid.Checked;
 
-            MenuShowGrid.Checked = State;
+            Menu_Options_Renderer_ShowGrid.Checked = State;
             TBtnShowGrid.Checked = State;
             UIGrid.Visible       = State;
 
@@ -375,9 +396,9 @@ namespace SPICA.WinForms
 
         private void ToggleAxis()
         {
-            bool State = !MenuShowAxis.Checked;
+            bool State = !Menu_Options_Renderer_ShowAxis.Checked;
 
-            MenuShowAxis.Checked = State;
+            Menu_Options_Renderer_ShowAxis.Checked = State;
             TBtnShowAxis.Checked = State;
             UIAxis.Visible       = State;
 
@@ -386,9 +407,9 @@ namespace SPICA.WinForms
 
         private void ToggleSide()
         {
-            bool State = !MenuShowSide.Checked;
+            bool State = !Menu_Options_UserInterface_ShowSide.Checked;
 
-            MenuShowSide.Checked          =  State;
+            Menu_Options_UserInterface_ShowSide.Checked          =  State;
             TBtnShowSide.Checked          =  State;
             MainContainer.Panel2Collapsed = !State;
         }

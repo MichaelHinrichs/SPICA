@@ -31,20 +31,23 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.TopMenu = new System.Windows.Forms.MenuStrip();
-            this.MenuFileRoot = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuOpenFile = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuMergeFiles = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuBatchExport = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuOptionsRoot = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuRenderer = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuShowGrid = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuShowAxis = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuShowSkeleton = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuShowInfo = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuWireframeMode = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuUserInterface = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuShowSide = new System.Windows.Forms.ToolStripMenuItem();
-            this.MenuHelpRoot = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_File = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_File_Open = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_File_Merge = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_File_BatchExport = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_File_Quit = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Renderer = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Renderer_ShowGrid = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Renderer_ShowAxis = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Renderer_ShowSkeleton = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Renderer_ShowInfo = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Renderer_WireframeMode = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_UserInterface = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_UserInterface_ShowSide = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Debug = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Options_Debug_ReloadModel = new System.Windows.Forms.ToolStripMenuItem();
+            this.Menu_Help = new System.Windows.Forms.ToolStripMenuItem();
             this.AnimControlsPanel = new System.Windows.Forms.Panel();
             this.LblAnimSpeed = new System.Windows.Forms.Label();
             this.LblAnimLoopMode = new System.Windows.Forms.Label();
@@ -64,8 +67,6 @@
             this.TBtnShowInfo = new System.Windows.Forms.ToolStripButton();
             this.TBtnShowSide = new System.Windows.Forms.ToolStripButton();
             this.TopIcons = new System.Windows.Forms.ToolStrip();
-            this.MenuDebug = new System.Windows.Forms.ToolStripMenuItem();
-            this.reloadModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SideTabs = new SPICA.WinForms.GUI.SUITabControl();
             this.TabPageModels = new System.Windows.Forms.TabPage();
             this.ModelsList = new SPICA.WinForms.GUI.SUIList();
@@ -94,6 +95,7 @@
             this.AnimButtonStop = new SPICA.WinForms.GUI.SUIIconButton();
             this.AnimButtonSpeedUp = new SPICA.WinForms.GUI.SUIIconButton();
             this.AnimButtonNext = new SPICA.WinForms.GUI.SUIIconButton();
+            this.Menu_Help_About = new System.Windows.Forms.ToolStripMenuItem();
             this.TopMenu.SuspendLayout();
             this.AnimControlsPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainContainer)).BeginInit();
@@ -119,121 +121,147 @@
             this.TopMenu.ForeColor = System.Drawing.Color.White;
             this.TopMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.TopMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuFileRoot,
-            this.MenuOptionsRoot,
-            this.MenuHelpRoot});
+            this.Menu_File,
+            this.Menu_Options,
+            this.Menu_Help});
             this.TopMenu.Location = new System.Drawing.Point(0, 0);
             this.TopMenu.Name = "TopMenu";
             this.TopMenu.Size = new System.Drawing.Size(944, 31);
             this.TopMenu.TabIndex = 1;
             // 
-            // MenuFileRoot
+            // Menu_File
             // 
-            this.MenuFileRoot.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuOpenFile,
-            this.MenuMergeFiles,
-            this.MenuBatchExport});
-            this.MenuFileRoot.Name = "MenuFileRoot";
-            this.MenuFileRoot.Size = new System.Drawing.Size(47, 27);
-            this.MenuFileRoot.Text = "&File";
+            this.Menu_File.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.Menu_File_Open,
+            this.Menu_File_Merge,
+            this.Menu_File_BatchExport,
+            this.Menu_File_Quit});
+            this.Menu_File.Name = "Menu_File";
+            this.Menu_File.Size = new System.Drawing.Size(47, 27);
+            this.Menu_File.Text = "&File";
             // 
-            // MenuOpenFile
+            // Menu_File_Open
             // 
-            this.MenuOpenFile.Name = "MenuOpenFile";
-            this.MenuOpenFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.MenuOpenFile.Size = new System.Drawing.Size(211, 28);
-            this.MenuOpenFile.Text = "&Open...";
-            this.MenuOpenFile.Click += new System.EventHandler(this.MenuOpenFile_Click);
+            this.Menu_File_Open.Name = "Menu_File_Open";
+            this.Menu_File_Open.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+            this.Menu_File_Open.Size = new System.Drawing.Size(216, 28);
+            this.Menu_File_Open.Text = "&Open...";
+            this.Menu_File_Open.Click += new System.EventHandler(this.Menu_File_Open__Click);
             // 
-            // MenuMergeFiles
+            // Menu_File_Merge
             // 
-            this.MenuMergeFiles.Name = "MenuMergeFiles";
-            this.MenuMergeFiles.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M)));
-            this.MenuMergeFiles.Size = new System.Drawing.Size(211, 28);
-            this.MenuMergeFiles.Text = "&Merge...";
-            this.MenuMergeFiles.Click += new System.EventHandler(this.MenuMergeFiles_Click);
+            this.Menu_File_Merge.Name = "Menu_File_Merge";
+            this.Menu_File_Merge.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M)));
+            this.Menu_File_Merge.Size = new System.Drawing.Size(216, 28);
+            this.Menu_File_Merge.Text = "&Merge...";
+            this.Menu_File_Merge.Click += new System.EventHandler(this.Menu_File_Merge__Click);
             // 
-            // MenuBatchExport
+            // Menu_File_BatchExport
             // 
-            this.MenuBatchExport.Name = "MenuBatchExport";
-            this.MenuBatchExport.Size = new System.Drawing.Size(211, 28);
-            this.MenuBatchExport.Text = "&Batch export...";
-            this.MenuBatchExport.Click += new System.EventHandler(this.MenuBatchExport_Click);
+            this.Menu_File_BatchExport.Name = "Menu_File_BatchExport";
+            this.Menu_File_BatchExport.Size = new System.Drawing.Size(216, 28);
+            this.Menu_File_BatchExport.Text = "&Batch export...";
+            this.Menu_File_BatchExport.Click += new System.EventHandler(this.Menu_File_BatchExport__Click);
             // 
-            // MenuOptionsRoot
+            // Menu_File_Quit
             // 
-            this.MenuOptionsRoot.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuRenderer,
-            this.MenuUserInterface,
-            this.MenuDebug});
-            this.MenuOptionsRoot.Name = "MenuOptionsRoot";
-            this.MenuOptionsRoot.Size = new System.Drawing.Size(82, 27);
-            this.MenuOptionsRoot.Text = "&Options";
+            this.Menu_File_Quit.Name = "Menu_File_Quit";
+            this.Menu_File_Quit.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
+            this.Menu_File_Quit.Size = new System.Drawing.Size(216, 28);
+            this.Menu_File_Quit.Text = "&Quit";
+            this.Menu_File_Quit.Click += new System.EventHandler(this.Menu_File_Quit__Click);
             // 
-            // MenuRenderer
+            // Menu_Options
             // 
-            this.MenuRenderer.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuShowGrid,
-            this.MenuShowAxis,
-            this.MenuShowSkeleton,
-            this.MenuShowInfo,
-            this.MenuWireframeMode});
-            this.MenuRenderer.Name = "MenuRenderer";
-            this.MenuRenderer.Size = new System.Drawing.Size(216, 28);
-            this.MenuRenderer.Text = "&Renderer";
+            this.Menu_Options.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.Menu_Options_Renderer,
+            this.Menu_Options_UserInterface,
+            this.Menu_Options_Debug});
+            this.Menu_Options.Name = "Menu_Options";
+            this.Menu_Options.Size = new System.Drawing.Size(82, 27);
+            this.Menu_Options.Text = "&Options";
             // 
-            // MenuShowGrid
+            // Menu_Options_Renderer
             // 
-            this.MenuShowGrid.Name = "MenuShowGrid";
-            this.MenuShowGrid.Size = new System.Drawing.Size(218, 28);
-            this.MenuShowGrid.Text = "Show &grid";
-            this.MenuShowGrid.Click += new System.EventHandler(this.MenuShowGrid_Click);
+            this.Menu_Options_Renderer.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.Menu_Options_Renderer_ShowGrid,
+            this.Menu_Options_Renderer_ShowAxis,
+            this.Menu_Options_Renderer_ShowSkeleton,
+            this.Menu_Options_Renderer_ShowInfo,
+            this.Menu_Options_Renderer_WireframeMode});
+            this.Menu_Options_Renderer.Name = "Menu_Options_Renderer";
+            this.Menu_Options_Renderer.Size = new System.Drawing.Size(216, 28);
+            this.Menu_Options_Renderer.Text = "&Renderer";
             // 
-            // MenuShowAxis
+            // Menu_Options_Renderer_ShowGrid
             // 
-            this.MenuShowAxis.Name = "MenuShowAxis";
-            this.MenuShowAxis.Size = new System.Drawing.Size(218, 28);
-            this.MenuShowAxis.Text = "Show &axis";
-            this.MenuShowAxis.Click += new System.EventHandler(this.MenuShowAxis_Click);
+            this.Menu_Options_Renderer_ShowGrid.Name = "Menu_Options_Renderer_ShowGrid";
+            this.Menu_Options_Renderer_ShowGrid.Size = new System.Drawing.Size(218, 28);
+            this.Menu_Options_Renderer_ShowGrid.Text = "Show &grid";
+            this.Menu_Options_Renderer_ShowGrid.Click += new System.EventHandler(this.Menu_Options_Renderer_ShowGrid__Click);
             // 
-            // MenuShowSkeleton
+            // Menu_Options_Renderer_ShowAxis
             // 
-            this.MenuShowSkeleton.Name = "MenuShowSkeleton";
-            this.MenuShowSkeleton.Size = new System.Drawing.Size(218, 28);
-            this.MenuShowSkeleton.Text = "Show &skeleton";
+            this.Menu_Options_Renderer_ShowAxis.Name = "Menu_Options_Renderer_ShowAxis";
+            this.Menu_Options_Renderer_ShowAxis.Size = new System.Drawing.Size(218, 28);
+            this.Menu_Options_Renderer_ShowAxis.Text = "Show &axis";
+            this.Menu_Options_Renderer_ShowAxis.Click += new System.EventHandler(this.Menu_Options_Renderer_ShowAxis__Click);
             // 
-            // MenuShowInfo
+            // Menu_Options_Renderer_ShowSkeleton
             // 
-            this.MenuShowInfo.Name = "MenuShowInfo";
-            this.MenuShowInfo.Size = new System.Drawing.Size(218, 28);
-            this.MenuShowInfo.Text = "Show &model info.";
+            this.Menu_Options_Renderer_ShowSkeleton.Name = "Menu_Options_Renderer_ShowSkeleton";
+            this.Menu_Options_Renderer_ShowSkeleton.Size = new System.Drawing.Size(218, 28);
+            this.Menu_Options_Renderer_ShowSkeleton.Text = "Show &skeleton";
             // 
-            // MenuWireframeMode
+            // Menu_Options_Renderer_ShowInfo
             // 
-            this.MenuWireframeMode.Name = "MenuWireframeMode";
-            this.MenuWireframeMode.Size = new System.Drawing.Size(218, 28);
-            this.MenuWireframeMode.Text = "&Wireframe mode";
+            this.Menu_Options_Renderer_ShowInfo.Name = "Menu_Options_Renderer_ShowInfo";
+            this.Menu_Options_Renderer_ShowInfo.Size = new System.Drawing.Size(218, 28);
+            this.Menu_Options_Renderer_ShowInfo.Text = "Show &model info.";
             // 
-            // MenuUserInterface
+            // Menu_Options_Renderer_WireframeMode
             // 
-            this.MenuUserInterface.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuShowSide});
-            this.MenuUserInterface.Name = "MenuUserInterface";
-            this.MenuUserInterface.Size = new System.Drawing.Size(216, 28);
-            this.MenuUserInterface.Text = "&User interface";
+            this.Menu_Options_Renderer_WireframeMode.Name = "Menu_Options_Renderer_WireframeMode";
+            this.Menu_Options_Renderer_WireframeMode.Size = new System.Drawing.Size(218, 28);
+            this.Menu_Options_Renderer_WireframeMode.Text = "&Wireframe mode";
             // 
-            // MenuShowSide
+            // Menu_Options_UserInterface
             // 
-            this.MenuShowSide.Name = "MenuShowSide";
-            this.MenuShowSide.Size = new System.Drawing.Size(216, 28);
-            this.MenuShowSide.Text = "Show &side menu";
-            this.MenuShowSide.Click += new System.EventHandler(this.MenuShowSide_Click);
+            this.Menu_Options_UserInterface.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.Menu_Options_UserInterface_ShowSide});
+            this.Menu_Options_UserInterface.Name = "Menu_Options_UserInterface";
+            this.Menu_Options_UserInterface.Size = new System.Drawing.Size(216, 28);
+            this.Menu_Options_UserInterface.Text = "&User interface";
             // 
-            // MenuHelpRoot
+            // Menu_Options_UserInterface_ShowSide
             // 
-            this.MenuHelpRoot.Name = "MenuHelpRoot";
-            this.MenuHelpRoot.Size = new System.Drawing.Size(57, 27);
-            this.MenuHelpRoot.Text = "&Help";
+            this.Menu_Options_UserInterface_ShowSide.Name = "Menu_Options_UserInterface_ShowSide";
+            this.Menu_Options_UserInterface_ShowSide.Size = new System.Drawing.Size(211, 28);
+            this.Menu_Options_UserInterface_ShowSide.Text = "Show &side menu";
+            this.Menu_Options_UserInterface_ShowSide.Click += new System.EventHandler(this.Menu_Options_UserInterface_ShowSide__Click);
+            // 
+            // Menu_Options_Debug
+            // 
+            this.Menu_Options_Debug.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.Menu_Options_Debug_ReloadModel});
+            this.Menu_Options_Debug.Name = "Menu_Options_Debug";
+            this.Menu_Options_Debug.Size = new System.Drawing.Size(216, 28);
+            this.Menu_Options_Debug.Text = "&Debug";
+            // 
+            // Menu_Options_Debug_ReloadModel
+            // 
+            this.Menu_Options_Debug_ReloadModel.Name = "Menu_Options_Debug_ReloadModel";
+            this.Menu_Options_Debug_ReloadModel.Size = new System.Drawing.Size(191, 28);
+            this.Menu_Options_Debug_ReloadModel.Text = "Reload Model";
+            this.Menu_Options_Debug_ReloadModel.Click += new System.EventHandler(this.Menu_Options_Debug_ReloadModel__Click);
+            // 
+            // Menu_Help
+            // 
+            this.Menu_Help.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.Menu_Help_About});
+            this.Menu_Help.Name = "Menu_Help";
+            this.Menu_Help.Size = new System.Drawing.Size(57, 27);
+            this.Menu_Help.Text = "&Help";
             // 
             // AnimControlsPanel
             // 
@@ -457,21 +485,6 @@
             this.TopIcons.Name = "TopIcons";
             this.TopIcons.Size = new System.Drawing.Size(944, 30);
             this.TopIcons.TabIndex = 3;
-            // 
-            // MenuDebug
-            // 
-            this.MenuDebug.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.reloadModelToolStripMenuItem});
-            this.MenuDebug.Name = "MenuDebug";
-            this.MenuDebug.Size = new System.Drawing.Size(216, 28);
-            this.MenuDebug.Text = "&Debug";
-            // 
-            // reloadModelToolStripMenuItem
-            // 
-            this.reloadModelToolStripMenuItem.Name = "reloadModelToolStripMenuItem";
-            this.reloadModelToolStripMenuItem.Size = new System.Drawing.Size(216, 28);
-            this.reloadModelToolStripMenuItem.Text = "Reload Model";
-            this.reloadModelToolStripMenuItem.Click += new System.EventHandler(this.MenuReloadModel_Click);
             // 
             // SideTabs
             // 
@@ -851,6 +864,13 @@
             this.AnimButtonNext.TabIndex = 2;
             this.AnimButtonNext.Click += new System.EventHandler(this.AnimButtonNext_Click);
             // 
+            // Menu_Help_About
+            // 
+            this.Menu_Help_About.Name = "Menu_Help_About";
+            this.Menu_Help_About.Size = new System.Drawing.Size(216, 28);
+            this.Menu_Help_About.Text = "&About";
+            this.Menu_Help_About.Click += new System.EventHandler(this.Menu_Help_About__Click);
+            // 
             // FrmMain
             // 
             this.AllowDrop = true;
@@ -900,9 +920,27 @@
 
         private System.Windows.Forms.SplitContainer MainContainer;
         private System.Windows.Forms.MenuStrip TopMenu;
-        private System.Windows.Forms.ToolStripMenuItem MenuFileRoot;
-        private System.Windows.Forms.ToolStripMenuItem MenuHelpRoot;
-        private System.Windows.Forms.ToolStripMenuItem MenuOpenFile;
+
+        private System.Windows.Forms.ToolStripMenuItem Menu_File;
+        private System.Windows.Forms.ToolStripMenuItem Menu_File_Open;
+        private System.Windows.Forms.ToolStripMenuItem Menu_File_Merge;
+        private System.Windows.Forms.ToolStripMenuItem Menu_File_BatchExport;
+        private System.Windows.Forms.ToolStripMenuItem Menu_File_Quit;
+
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Renderer;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Renderer_ShowGrid;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Renderer_ShowAxis;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Renderer_ShowSkeleton;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Renderer_ShowInfo;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Renderer_WireframeMode;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_UserInterface;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_UserInterface_ShowSide;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Debug;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Debug_ReloadModel;
+
+        private System.Windows.Forms.ToolStripMenuItem Menu_Help;
+
         private GUI.SUITabControl SideTabs;
         private System.Windows.Forms.TabPage TabPageModels;
         private System.Windows.Forms.TabPage TabPageTextures;
@@ -928,10 +966,6 @@
         private System.Windows.Forms.ImageList TabIcons;
         private System.Windows.Forms.TabPage TabPageMatAnims;
         private GUI.SUIList MatAnimsList;
-        private System.Windows.Forms.ToolStripMenuItem MenuMergeFiles;
-        private System.Windows.Forms.ToolStripMenuItem MenuBatchExport;
-        private System.Windows.Forms.ToolStripMenuItem MenuOptionsRoot;
-        private System.Windows.Forms.ToolStripMenuItem MenuRenderer;
         private System.Windows.Forms.ToolStripButton TBtnOpen;
         private System.Windows.Forms.ToolStripButton TBtnMerge;
         private System.Windows.Forms.ToolStripButton TBtnSave;
@@ -942,13 +976,6 @@
         private System.Windows.Forms.ToolStripButton TBtnShowInfo;
         private System.Windows.Forms.ToolStripButton TBtnShowSide;
         private System.Windows.Forms.ToolStrip TopIcons;
-        private System.Windows.Forms.ToolStripMenuItem MenuShowGrid;
-        private System.Windows.Forms.ToolStripMenuItem MenuShowAxis;
-        private System.Windows.Forms.ToolStripMenuItem MenuShowSkeleton;
-        private System.Windows.Forms.ToolStripMenuItem MenuShowInfo;
-        private System.Windows.Forms.ToolStripMenuItem MenuWireframeMode;
-        private System.Windows.Forms.ToolStripMenuItem MenuUserInterface;
-        private System.Windows.Forms.ToolStripMenuItem MenuShowSide;
         private System.Windows.Forms.ToolStrip SideIcons;
         private System.Windows.Forms.ToolStripButton ToolButtonExport;
         private System.Windows.Forms.ToolStripButton ToolButtonImport;
@@ -960,7 +987,6 @@
         private GUI.SUIList VisAnimsList;
         private System.Windows.Forms.TabPage TabPageLights;
         private GUI.SUIList LightsList;
-        private System.Windows.Forms.ToolStripMenuItem MenuDebug;
-        private System.Windows.Forms.ToolStripMenuItem reloadModelToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Help_About;
     }
 }
