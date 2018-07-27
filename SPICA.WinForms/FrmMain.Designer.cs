@@ -67,6 +67,7 @@
             this.TBtnShowInfo = new System.Windows.Forms.ToolStripButton();
             this.TBtnShowSide = new System.Windows.Forms.ToolStripButton();
             this.TopIcons = new System.Windows.Forms.ToolStrip();
+            this.Menu_Help_About = new System.Windows.Forms.ToolStripMenuItem();
             this.SideTabs = new SPICA.WinForms.GUI.SUITabControl();
             this.TabPageModels = new System.Windows.Forms.TabPage();
             this.ModelsList = new SPICA.WinForms.GUI.SUIList();
@@ -95,7 +96,6 @@
             this.AnimButtonStop = new SPICA.WinForms.GUI.SUIIconButton();
             this.AnimButtonSpeedUp = new SPICA.WinForms.GUI.SUIIconButton();
             this.AnimButtonNext = new SPICA.WinForms.GUI.SUIIconButton();
-            this.Menu_Help_About = new System.Windows.Forms.ToolStripMenuItem();
             this.TopMenu.SuspendLayout();
             this.AnimControlsPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainContainer)).BeginInit();
@@ -251,8 +251,10 @@
             // Menu_Options_Debug_ReloadModel
             // 
             this.Menu_Options_Debug_ReloadModel.Name = "Menu_Options_Debug_ReloadModel";
-            this.Menu_Options_Debug_ReloadModel.Size = new System.Drawing.Size(191, 28);
-            this.Menu_Options_Debug_ReloadModel.Text = "Reload Model";
+            this.Menu_Options_Debug_ReloadModel.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.R)));
+            this.Menu_Options_Debug_ReloadModel.Size = new System.Drawing.Size(290, 28);
+            this.Menu_Options_Debug_ReloadModel.Text = "&Reload Model";
             this.Menu_Options_Debug_ReloadModel.Click += new System.EventHandler(this.Menu_Options_Debug_ReloadModel__Click);
             // 
             // Menu_Help
@@ -485,6 +487,13 @@
             this.TopIcons.Name = "TopIcons";
             this.TopIcons.Size = new System.Drawing.Size(944, 30);
             this.TopIcons.TabIndex = 3;
+            // 
+            // Menu_Help_About
+            // 
+            this.Menu_Help_About.Name = "Menu_Help_About";
+            this.Menu_Help_About.Size = new System.Drawing.Size(133, 28);
+            this.Menu_Help_About.Text = "&About";
+            this.Menu_Help_About.Click += new System.EventHandler(this.Menu_Help_About__Click);
             // 
             // SideTabs
             // 
@@ -863,13 +872,6 @@
             this.AnimButtonNext.Size = new System.Drawing.Size(28, 27);
             this.AnimButtonNext.TabIndex = 2;
             this.AnimButtonNext.Click += new System.EventHandler(this.AnimButtonNext_Click);
-            // 
-            // Menu_Help_About
-            // 
-            this.Menu_Help_About.Name = "Menu_Help_About";
-            this.Menu_Help_About.Size = new System.Drawing.Size(216, 28);
-            this.Menu_Help_About.Text = "&About";
-            this.Menu_Help_About.Click += new System.EventHandler(this.Menu_Help_About__Click);
             // 
             // FrmMain
             // 
