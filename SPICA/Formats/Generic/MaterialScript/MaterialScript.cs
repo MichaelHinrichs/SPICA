@@ -17,7 +17,7 @@ namespace SPICA.Formats.Generic.MaterialScript
 {
     public class MaterialScript
     {
-        private List<string> mats;
+        private StringBuilder script;
 
         //MaxScript variable names to be used for the various sources
         private Dictionary<int, string> sources = new Dictionary<int, string>()
@@ -34,7 +34,6 @@ namespace SPICA.Formats.Generic.MaterialScript
             { 15, "prev" }
         };
 
-        
         //number of sources used by a combiner
         private int[] combinerTxtCount = new int[] {1, 2, 2, 2, 3, 2, 3, 3, 3, 3};
 
@@ -76,101 +75,118 @@ namespace SPICA.Formats.Generic.MaterialScript
                 H3DModel Mdl = Scene.Models[MdlIndex];
 
                 if (Mdl.Materials.Count < 1) return; //if model has no materials, abort
-
-                mats = new List<string>(Mdl.Materials.Count + 2);
-                StringBuilder mat;
             
-                int stageA;
-                int stageC;
+                int stageN;
 
-                mats.Add("vtxColor = VertexColor()\n");
+                script = new StringBuilder("vtxColor = VertexColor()\n\n");
 
                 foreach (H3DMaterial Mtl in Mdl.Materials)
                 {
                     //Basic Material Setup
-                    mat = new StringBuilder(
+                    script.Append(
                           $"{Mtl.Name}_mat = standardMaterial()\n"
                         + $"{Mtl.Name}_mat.name = \"{Mtl.Name}_mat\"\n"
                         + $"{Mtl.Name}_mat.shaderByName = \"phong\"\n"
                         + $"{Mtl.Name}_mat.showInViewport = true\n"
                         + $"{Mtl.Name}_mat.ambient = {GetMaxColor(Mtl.MaterialParams.AmbientColor)}\n"
-                        + $"{Mtl.Name}_mat.diffuse = {GetMaxColor(Mtl.MaterialParams.DiffuseColor)}\n"
-                        + $"{Mtl.Name}_mat.specular = {GetMaxColor(Mtl.MaterialParams.Specular0Color)}\n"  //TODO: use specular alpha as specular level?
+                        + $"{Mtl.Name}_mat.diffuse = {GetMaxColor(Mtl.MaterialParams.DiffuseColor)}\n"      //TODO: should these colors include the alpha value?
+                        + $"{Mtl.Name}_mat.specular = {GetMaxColor(Mtl.MaterialParams.Specular0Color)}\n"
+                        + $"{Mtl.Name}_mat.specularLevel = {Mtl.MaterialParams.Specular0Color.A/2.55d}"
                         + '\n');
 
                     //create bitmap maps for textures
-                    if (Mtl.Texture0Name != null && Mtl.Texture0Name.Length > 0) mat.Append(GetTextureString(0, Mtl));
-                    if (Mtl.Texture1Name != null && Mtl.Texture1Name.Length > 0) mat.Append(GetTextureString(1, Mtl));
-                    if (Mtl.Texture2Name != null && Mtl.Texture2Name.Length > 0) mat.Append(GetTextureString(2, Mtl));
-                    mat.Append('\n');
+                    if (Mtl.Texture0Name != null && Mtl.Texture0Name.Length > 0) script.Append(GetTextureString(Mtl, 0));
+                    if (Mtl.Texture1Name != null && Mtl.Texture1Name.Length > 0) script.Append(GetTextureString(Mtl, 1));
+                    if (Mtl.Texture2Name != null && Mtl.Texture2Name.Length > 0) script.Append(GetTextureString(Mtl, 2));
+                    script.Append('\n');
 
                     //create diffuse composite map
-                    mat.Append("map = compositeMap()\n");
+                    script.Append("map = compositeMap()\n");
 
                     //Setup diffuse map stages
-                    stageC = 1;
+                    stageN = 1;
                     foreach (PICATexEnvStage stage in Mtl.MaterialParams.TexEnvStages)
                     {
                         if (stage.IsColorPassThrough) continue;                                 //if passthrough stage, skip
                         if (stage.UpdateColorBuffer)                                            //if this stage updates the color Buffer
                         {
-                            mat.Append("buffer = copy(map)\n");                                 //  store copy of composite map as "buffer"
-                            if (stage.Source.Color[0] != PICATextureCombinerSource.Previous)    //  if current stage is not using previous   //TODO: Check for "Previous" in 1 or 2
+                            script.Append("buffer = copy(map)\n");                                 //  store copy of composite map as "buffer"
+                            if (stage.Source.Color[0] != PICATextureCombinerSource.Previous)    //  if current stage is not using previous   //TODO: Check for "Previous" in 1 or 2?
                             {                                                                       
-                                mat.Append("map = compositeMap()\n");                           //    start a new composite map
-                                stageC = 1;
+                                script.Append("map = compositeMap()\n");                           //    start a new composite map
+                                stageN = 1;
                             }
                         }
 
-                        //assign the stage's const  //TODO: this isn't always the right color, figure out when to us MaterialParams.Constant#Color instead
-                        mat.Append($"const = rgbMult color1: [{stage.Color.R},{stage.Color.G},{stage.Color.B}]");
+                        //assign the stage's const  //TODO: this isn't always the right color, figure out when to us MaterialParams.Constant#Color instead (if Constant#Adssignment == stage number, use that one?)
+                        script.Append($"const = rgbMult color1: [{stage.Color.R},{stage.Color.G},{stage.Color.B}]\n");
 
                         //create layers based on combiner type //TODO: put more comments here
                         for (int i = 0; i < combinerTxtCount[(int)(stage.Combiner.Color)]; i++)
                         {
-                            if (stage.Source.Color[i] == PICATextureCombinerSource.Previous) continue;  //TODO: Throw exception if 1 or 2 is "Previous"
+                            //if operand is "Previous" don't add a layer for it
+                            if (stage.Source.Color[i] == PICATextureCombinerSource.Previous) continue;  //TODO: Throw exception if 1 or 2 is "Previous"?
 
-                            if (i == 2 && stage.Combiner.Color == PICATextureCombinerMode.Interpolate)
+                            if (i == 2 && stage.Combiner.Color == PICATextureCombinerMode.Interpolate)  //if combiner mode is "Interpolate", assign the last operand as a mask to the previous layer
                             {
-                                mat.Append($"map.mask[{stageC-1}] = {ChannelSelectColor(stage, i, mat)}\n");
+                                script.Append($"map.mask[{stageN-1}] = {GetSourceStringColor(stage, i, script)}\n");
                             }
-                            else
+                            else  //otherwise add a layer for the operand and set the layer's blend mode based on the stage's combiner mode
                             {
-                                mat.Append($"map.mapList[{stageC}] = {ChannelSelectColor(stage, i, mat)}\n");
-                                mat.Append($"map.blendMode[{stageC}] = {combinerOps[(int)(stage.Combiner.Color), i]}\n");
-                                stageC++;
+                                script.Append($"map.mapList[{stageN}] = {GetSourceStringColor(stage, i, script)}\n");
+                                script.Append($"map.blendMode[{stageN}] = {combinerOps[(int)(stage.Combiner.Color), i]}\n");
+                                stageN++;
                             }
                         }
                     }
 
                     //assign composite map to main material
-                    mat.Append($"{Mtl.Name}_mat.maps[2] = map");
+                    script.Append($"{Mtl.Name}_mat.maps[2] = map\n");
 
 
-                    stageA = 0;
-                    //TODO: create alpha composite map
+                    //TODO: only create/assign alpha if it's used
+                    //create alpha composite map
+                    script.Append("map = compositeMap()\n");
+
+                    //Setup alpha map stages
+                    stageN = 1;
+                    foreach (PICATexEnvStage stage in Mtl.MaterialParams.TexEnvStages)
+                    {   
+                        if (stage.IsAlphaPassThrough) continue;                                 //if passthrough stage, skip
+                        if (stage.UpdateAlphaBuffer)                                            //if this stage updates the color Buffer
+                        {
+                            script.Append("buffer = copy(map)\n");                                 //  store copy of composite map as "buffer"
+                            if (stage.Source.Alpha[0] != PICATextureCombinerSource.Previous)    //  if current stage is not using previous   //TODO: Check for "Previous" in 1 or 2
+                            {
+                                script.Append("map = compositeMap()\n");                           //    start a new composite map
+                                stageN = 1;
+                            }
+                        }
+
+                        //TODO: create alpha composite map
+
+                    }
 
 
-                    mats.Add(mat+"\n\n");                 
+                    script.Append("\n\n");                 
                 }
 
                 //create material assignment loop
-                mat = new StringBuilder("for OBJ in Geometry do\n(\n  if OBJ.material != undefined then\n  (\n");
+                script.Append("for OBJ in Geometry do\n(\n  if OBJ.material != undefined then\n  (\n");
                 foreach (H3DMaterial Mtl in Mdl.Materials)
                 {
-                    mat.Append($"    if OBJ.material.name == \"{Mtl.Name}_mat\" then OBJ.material = {Mtl.Name}_mat\n");
+                    script.Append($"    if OBJ.material.name == \"{Mtl.Name}_mat\" then OBJ.material = {Mtl.Name}_mat\n");
                 }
-                mat.Append("  )\n)\n");
-
-                mats.Add(mat.ToString());
+                script.Append("  )\n)\n");
 
             } //MdlIndex != -1
         }
 
         public void Save(string FileName)
         {
-            File.WriteAllLines(FileName, mats.ToArray());
+            File.WriteAllText(FileName, script.ToString());
         }
+
 
 
 
@@ -179,19 +195,24 @@ namespace SPICA.Formats.Generic.MaterialScript
             return $"color {color.R} {color.G} {color.B} {color.A}";
         }
 
-
-        private string GetTextureString(int idx, H3DMaterial mat)
+        /// <summary>
+        /// Creates MaxScript code to create a bitmap texture map for the selected texture in the given material
+        /// </summary>
+        /// <param name="mat">The H3D material containing the desired texture</param>
+        /// <param name="idx">the index of the desired texture</param>
+        /// <returns>MaxScript code string</returns>
+        private string GetTextureString(H3DMaterial mat, int idx)
         {
             StringBuilder txtString = new StringBuilder($"txt{idx} = bitmapTexture()\n");
 
-            switch(idx)
+            switch(idx) //Select the texture from the material
             {
                 case 1:  txtString.AppendLine($"txt{idx}.filename = \"./{mat.Texture1Name}.png\""); break;
                 case 2:  txtString.AppendLine($"txt{idx}.filename = \"./{mat.Texture2Name}.png\""); break;
                 default: txtString.AppendLine($"txt{idx}.filename = \"./{mat.Texture0Name}.png\""); break;
             }
-            txtString.AppendLine($"txt{idx}.name = \"{mat.Name}_d_txt{idx}\"");
-            txtString.AppendLine($"txt{idx}.preMultAlpha = false");
+            txtString.AppendLine($"txt{idx}.name = \"{mat.Name}_d_txt{idx}\""); //set map name
+            txtString.AppendLine($"txt{idx}.preMultAlpha = false");             //disable pre-multiplied alpha
 
             //if texture uses non-default map channel, add the code to set it
             if (mat.MaterialParams.TextureSources[idx] > 0)
@@ -202,20 +223,39 @@ namespace SPICA.Formats.Generic.MaterialScript
             return txtString.ToString();
         }
 
-        private string ChannelSelectColor(PICATexEnvStage stage, int srcIdx, StringBuilder mat)
+        /// <summary>
+        /// returns the name of the indicated source from the given stage and adds a color correction map if needed
+        /// </summary>
+        /// <param name="stage">The stage containing the desired source</param>
+        /// <param name="srcIdx">the index of the desired source</param>
+        /// <param name="mat">the StringBuilder to add the collor correction map code to</param>
+        /// <returns>MaxScript variable name of source</returns>
+        private string GetSourceStringColor(PICATexEnvStage stage, int srcIdx, StringBuilder mat)
         {
-            //TODO: add Max vertex alpha workaround
-            //TODO: don't color correct constants, just make new ones
-            if (stage.Operand.Color[srcIdx] != PICATextureCombinerColorOp.Color)
+            //if source is vertex colors and operand is alpha (Workaround for Max's inablity to use vertex alpha in materials.  Copy of vertex alpha must be in last map channel)
+            if (stage.Source.Color[srcIdx] == PICATextureCombinerSource.PrimaryColor && (stage.Operand.Color[srcIdx] == PICATextureCombinerColorOp.Alpha || stage.Operand.Color[srcIdx] == PICATextureCombinerColorOp.OneMinusAlpha))
             {
-                mat.Append(  "ccmap = ColorCorrection()\n"
-                          + $"ccmap.map = {sources[(int)(stage.Source.Color[srcIdx])]}\n"
-                          + $"ccmap.rewireR = {operandChannels[(int)(stage.Operand.Color[srcIdx])][0]}\n"
-                          + $"ccmap.rewireG = {operandChannels[(int)(stage.Operand.Color[srcIdx])][1]}\n"
-                          + $"ccmap.rewireB = {operandChannels[(int)(stage.Operand.Color[srcIdx])][2]}\n");
-                return "ccmap";
+                mat.Append("vtxAlpha = copy(vtxColor)\n"
+                        + $"vtxAlpha.map = {2}\n"   //TODO: get last+1 map channel id
+                        +  "vtxAlpha.subid = 1\n");
+                return "vtxAlpha";
             }
 
+            //if operand is not just color
+            else if (stage.Operand.Color[srcIdx] != PICATextureCombinerColorOp.Color)
+            {
+                //TODO: don't color correct constants, just make new ones
+
+                //create a collor correction map to select the color channels
+                mat.Append("ccmap = ColorCorrection()\n"
+                        + $"ccmap.map = {sources[(int)(stage.Source.Color[srcIdx])]}\n"
+                        + $"ccmap.rewireR = {operandChannels[(int)(stage.Operand.Color[srcIdx])][0]}\n"
+                        + $"ccmap.rewireG = {operandChannels[(int)(stage.Operand.Color[srcIdx])][1]}\n"
+                        + $"ccmap.rewireB = {operandChannels[(int)(stage.Operand.Color[srcIdx])][2]}\n");
+                return "ccmap"; //return the color map
+            }
+
+            //otherwise just return the source
             return sources[(int)(stage.Source.Color[srcIdx])];
         }
 
