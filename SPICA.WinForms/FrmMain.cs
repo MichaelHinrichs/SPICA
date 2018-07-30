@@ -83,12 +83,21 @@ namespace SPICA.WinForms
         #region Main frame events
         private void FrmMain_DragEnter(object sender, DragEventArgs e)
         {
+            //TODO: disable alt key toggling menu while dragging, or switch key to control
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                e.Effect = DragDropEffects.Copy;
+                e.Effect = ModifierKeys.HasFlag(Keys.Alt) ? DragDropEffects.Copy : DragDropEffects.Move;
             }
         }
-        
+
+        private void FrmMain_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = ModifierKeys.HasFlag(Keys.Alt) ? DragDropEffects.Copy : DragDropEffects.Move;
+            }
+        }
+
         private void FrmMain_DragDrop(object sender, DragEventArgs e)
         {
             string[] Files = (string[])e.Data.GetData(DataFormats.FileDrop);
@@ -219,12 +228,17 @@ namespace SPICA.WinForms
             #region File
             private void Menu_File_Open__Click(object sender, EventArgs e)
             {
-                TBtnOpen_Click(sender, e);
+                Open(false);
             }
 
             private void Menu_File_Merge__Click(object sender, EventArgs e)
             {
-                TBtnMerge_Click(sender, e);
+                Open(Scene != null);
+            }
+
+            private void Menu_File_Save__Click(object sender, EventArgs e)
+            {
+                Save();
             }
 
             private void Menu_File_BatchExport__Click(object sender, EventArgs e)
@@ -288,17 +302,17 @@ namespace SPICA.WinForms
         #region Button events
         private void TBtnOpen_Click(object sender, EventArgs e)
         {
-            Open(false);
+            Menu_File_Open__Click(sender, e);
         }
 
         private void TBtnMerge_Click(object sender, EventArgs e)
         {
-            Open(Scene != null);
+            Menu_File_Merge__Click(sender, e);
         }
 
         private void TBtnSave_Click(object sender, EventArgs e)
         {
-            Save();
+            Menu_File_Save__Click(sender, e);
         }
 
         private void TBtnShowGrid_Click(object sender, EventArgs e)
@@ -800,6 +814,7 @@ namespace SPICA.WinForms
 
             Settings.Default.Save();
         }
+
         #endregion
     }
 }
