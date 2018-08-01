@@ -312,6 +312,7 @@
     <Compile Include="Formats\Generic\COLLADA\DAEVector3.cs" />
     <Compile Include="Formats\Generic\COLLADA\DAEVector4.cs" />
     <Compile Include="Formats\Generic\COLLADA\DAEVisualScene.cs" />
+    <Compile Include="Formats\Generic\MaterialScript\MaterialDump.cs" />
     <Compile Include="Formats\Generic\MaterialScript\MaterialScript.cs" />
     <Compile Include="Formats\Generic\StudioMdl\SMD.cs" />
     <Compile Include="Formats\Generic\StudioMdl\SMDBone.cs" />

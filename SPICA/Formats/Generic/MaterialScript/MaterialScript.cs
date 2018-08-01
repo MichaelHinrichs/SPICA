@@ -12,6 +12,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 namespace SPICA.Formats.Generic.MaterialScript
 {
@@ -69,7 +70,8 @@ namespace SPICA.Formats.Generic.MaterialScript
         //the highest map channel used by the currently processed texture
         private int maxMapChannel;
 
-        //
+        //constant color for the currently processed stage
+        private RGBA stageColor;
 
         //public MaterialScript() { }
 
@@ -81,8 +83,11 @@ namespace SPICA.Formats.Generic.MaterialScript
 
                 if (Mdl.Materials.Count < 1) return; //if model has no materials, abort
             
+                //
                 int stageN;
+                PICATexEnvStage stage;
 
+                //Initialize script Stringbuilder
                 script = new StringBuilder("vtxColor = VertexColor()\n\n");
 
                 foreach (H3DMaterial Mtl in Mdl.Materials)
@@ -109,9 +114,9 @@ namespace SPICA.Formats.Generic.MaterialScript
 
                     //find the greatest used map channel (may be unreliable, assumes all map channels on the mesh are used by at least one texture)
                     maxMapChannel = 0;
-                    for (int i = 0; i < Mtl.MaterialParams.TextureSources.Length; i++)
-                    {
-                        if (Mtl.MaterialParams.TextureSources[i]+1 > maxMapChannel && (Mtl.MaterialParams.TextureCoords[i].Flags & H3DTextureCoordFlags.IsDirty) > 0)
+                    for (int i = 0; i < Mtl.MaterialParams.TextureCoords.Length; i++)
+                    {//TODO: is scale != <0,0> the best way to tell if the texture coord is used?
+                        if (Mtl.MaterialParams.TextureSources[i]+1 > maxMapChannel && Mtl.MaterialParams.TextureCoords[i].MappingType == H3DTextureMappingType.UvCoordinateMap && Mtl.MaterialParams.TextureCoords[i].Scale != Vector2.Zero)
                             maxMapChannel = (int)Mtl.MaterialParams.TextureSources[i] + 1;
                     }
 
@@ -124,8 +129,9 @@ namespace SPICA.Formats.Generic.MaterialScript
 
                     //Setup diffuse map stages
                     stageN = 1;
-                    foreach (PICATexEnvStage stage in Mtl.MaterialParams.TexEnvStages)
+                    for (int j=0; j < Mtl.MaterialParams.TexEnvStages.Length; j++)
                     {
+                        stage = Mtl.MaterialParams.TexEnvStages[j];
                         if (stage.IsColorPassThrough) continue;                                 //if passthrough stage, skip
                         if (stage.UpdateColorBuffer)                                            //if this stage updates the color Buffer
                         {
@@ -137,8 +143,8 @@ namespace SPICA.Formats.Generic.MaterialScript
                             }
                         }
 
-                        //assign the stage's const  //TODO: this isn't always the right color, figure out when to us MaterialParams.Constant#Color instead (if Constant#Adssignment == stage number, use that one?)
-                        script.Append($"const = rgbMult color1: [{stage.Color.R},{stage.Color.G},{stage.Color.B}]\n");
+                        //assign the stage's const color
+                        stageColor = GetConstColor(Mtl, j);
 
                         //create layers based on combiner type //TODO: put more comments here
                         for (int i = 0; i < combinerTxtCount[(int)(stage.Combiner.Color)]; i++)
@@ -172,8 +178,6 @@ namespace SPICA.Formats.Generic.MaterialScript
                         continue;   //skip to next material
                     }
 
-                    script.Append($"const = rgbMult color1: [255,255,255]\n");  //TODO: remove me
-
                     //reenable texture alpha if alpha test is enabled
                     if (Mtl.MaterialParams.AlphaTest.Enabled)  //TODO: this could be better somehow
                     {
@@ -189,8 +193,9 @@ namespace SPICA.Formats.Generic.MaterialScript
 
                     //Setup alpha map stages
                     stageN = 1;
-                    foreach (PICATexEnvStage stage in Mtl.MaterialParams.TexEnvStages)
-                    {   
+                    for (int j= 0; j < Mtl.MaterialParams.TexEnvStages.Length; j++)
+                    {
+                        stage = Mtl.MaterialParams.TexEnvStages[j];
                         if (stage.IsAlphaPassThrough) continue;                                 //if passthrough stage, skip
                         if (stage.UpdateAlphaBuffer)                                            //if this stage updates the alpha Buffer
                         {
@@ -202,7 +207,8 @@ namespace SPICA.Formats.Generic.MaterialScript
                             }
                         }
 
-                        //TODO: assign the stage's const  <----
+                        //TODO: assign the stage's const color
+                        stageColor = GetConstColor(Mtl, j);
 
                         //create layers based on combiner type
                         for (int i = 0; i < combinerTxtCount[(int)(stage.Combiner.Alpha)]; i++)
@@ -321,11 +327,27 @@ namespace SPICA.Formats.Generic.MaterialScript
                 return "vtxAlpha";
             }
 
+            //if source is a constant, create one based on the operand
+            if (stage.Source.Color[srcIdx] == PICATextureCombinerSource.Constant)
+            {
+                switch (op)
+                {
+                    case (int)PICATextureCombinerColorOp.OneMinusColor: return $"rgbMult color1: [{255-stageColor.R},{255-stageColor.G},{255-stageColor.B}]\n";
+                    case (int)PICATextureCombinerColorOp.Alpha: return $"rgbMult color1: [{stageColor.A},{stageColor.A},{stageColor.A}]\n";
+                    case (int)PICATextureCombinerColorOp.OneMinusAlpha: return $"rgbMult color1: [{255-stageColor.A},{255-stageColor.A},{255-stageColor.A}]\n";
+                    case (int)PICATextureCombinerColorOp.Red: return $"rgbMult color1: [{stageColor.R},{stageColor.R},{stageColor.R}]\n";
+                    case (int)PICATextureCombinerColorOp.OneMinusRed: return $"rgbMult color1: [{255 - stageColor.R},{255 - stageColor.R},{255 - stageColor.R}]\n";
+                    case (int)PICATextureCombinerColorOp.Green: return $"rgbMult color1: [{stageColor.G},{stageColor.G},{stageColor.G}]\n";
+                    case (int)PICATextureCombinerColorOp.OneMinusGreen: return $"rgbMult color1: [{255 - stageColor.G},{255 - stageColor.G},{255 - stageColor.G}]\n";
+                    case (int)PICATextureCombinerColorOp.Blue: return $"rgbMult color1: [{stageColor.B},{stageColor.B},{stageColor.B}]\n";
+                    case (int)PICATextureCombinerColorOp.OneMinusBlue: return $"rgbMult color1: [{255 - stageColor.B},{255 - stageColor.B},{255 - stageColor.B}]\n";
+                    default: return $"rgbMult color1: [{stageColor.R},{stageColor.G},{stageColor.B}]\n";
+                }
+            }
+
             //if operand is not just color
             if (op != (int)PICATextureCombinerColorOp.Color)    //else?
             {
-                //TODO: don't color correct constants, just make new ones
-
                 //create a color correction map to select the color channels
                 script.Append("ccmap = ColorCorrection()\n"
                         + $"ccmap.map = {sources[(int)(stage.Source.Color[srcIdx])]}\n"
@@ -379,8 +401,22 @@ namespace SPICA.Formats.Generic.MaterialScript
             if (stage.Source.Alpha[srcIdx] == PICATextureCombinerSource.PreviousBuffer)
                 return "buffer";
 
-            //TODO: don't color correct constants, just make new ones
-            
+            //if source is a constant, create one based on the operand
+            if (stage.Source.Color[srcIdx] == PICATextureCombinerSource.Constant)
+            {
+                switch (op)
+                {
+                    case (int)PICATextureCombinerAlphaOp.OneMinusAlpha: return $"rgbMult color1: [{255 - stageColor.A},{255 - stageColor.A},{255 - stageColor.A}]\n";
+                    case (int)PICATextureCombinerAlphaOp.Red: return $"rgbMult color1: [{stageColor.R},{stageColor.R},{stageColor.R}]\n";
+                    case (int)PICATextureCombinerAlphaOp.OneMinusRed: return $"rgbMult color1: [{255 - stageColor.R},{255 - stageColor.R},{255 - stageColor.R}]\n";
+                    case (int)PICATextureCombinerAlphaOp.Green: return $"rgbMult color1: [{stageColor.G},{stageColor.G},{stageColor.G}]\n";
+                    case (int)PICATextureCombinerAlphaOp.OneMinusGreen: return $"rgbMult color1: [{255 - stageColor.G},{255 - stageColor.G},{255 - stageColor.G}]\n";
+                    case (int)PICATextureCombinerAlphaOp.Blue: return $"rgbMult color1: [{stageColor.B},{stageColor.B},{stageColor.B}]\n";
+                    case (int)PICATextureCombinerAlphaOp.OneMinusBlue: return $"rgbMult color1: [{255 - stageColor.B},{255 - stageColor.B},{255 - stageColor.B}]\n";
+                    default: return $"rgbMult color1: [{stageColor.R},{stageColor.G},{stageColor.B}]\n";
+                }
+            }
+
 
             //create a color correction map to select the color channels
             op = op + 2 + ((op > 3)?2:0) + ((op > 5)?2:0);
@@ -392,6 +428,18 @@ namespace SPICA.Formats.Generic.MaterialScript
                     + $"ccmap.rewireA = 9\n");
             return "ccmap"; //return the color map
         }
+
+        private RGBA GetConstColor(H3DMaterial mtl, int stage) //TODO: this isn't always the right color, figure out when to us MaterialParams.Constant#Color instead (if Constant#Adssignment == stage number, use that one?)
+        {
+            if (mtl.MaterialParams.Constant0Assignment == stage) return mtl.MaterialParams.Constant0Color;
+            if (mtl.MaterialParams.Constant1Assignment == stage) return mtl.MaterialParams.Constant1Color;
+            if (mtl.MaterialParams.Constant2Assignment == stage) return mtl.MaterialParams.Constant2Color;
+            if (mtl.MaterialParams.Constant3Assignment == stage) return mtl.MaterialParams.Constant3Color;
+            if (mtl.MaterialParams.Constant4Assignment == stage) return mtl.MaterialParams.Constant4Color;
+            if (mtl.MaterialParams.Constant5Assignment == stage) return mtl.MaterialParams.Constant5Color;
+            return mtl.MaterialParams.TexEnvStages[stage].Color;
+        }
+
         #endregion
 
     }

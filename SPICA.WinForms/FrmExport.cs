@@ -2,6 +2,7 @@
 using SPICA.Formats.CtrH3D.Texture;
 using SPICA.Formats.Generic.COLLADA;
 using SPICA.Formats.Generic.StudioMdl;
+using SPICA.Formats.Generic.MaterialScript;
 using SPICA.WinForms.Formats;
 
 using System;
@@ -21,6 +22,7 @@ namespace SPICA.WinForms
         private void FrmExport_Load(object sender, EventArgs e)
         {
             CmbFormat.SelectedIndex = 0;
+            CmbMatFormat.SelectedIndex = 0;
         }
 
         private void BtnBrowseIn_Click(object sender, EventArgs e)
@@ -69,8 +71,10 @@ namespace SPICA.WinForms
             bool ExportAnims = ChkExportAnimations.Checked;
             bool ExportTexs = ChkExportTextures.Checked;
             bool PrefixNames = ChkPrefixNames.Checked;
+            bool ExportMats = ChkExportMaterials.Checked;
 
             int Format = CmbFormat.SelectedIndex;
+            int MatFormat = CmbMatFormat.SelectedIndex;
 
             int FileIndex = 0;
 
@@ -97,6 +101,20 @@ namespace SPICA.WinForms
                             {
                                 case 0: new DAE(Data, Index).Save(FileName + ".dae"); break;
                                 case 1: new SMD(Data, Index).Save(FileName + ".smd"); break;
+                            }
+                        }
+                    }
+
+                    if (ExportMats)
+                    {
+                        for (int Index = 0; Index < Data.Models.Count; Index++)
+                        {
+                            string FileName = BaseName + Data.Models[Index].Name;
+
+                            switch (MatFormat)
+                            {
+                                case 0: new MaterialScript(Data, Index).Save(FileName + ".ms"); break;
+                                case 1: new MaterialDump(Data, Index).Save(FileName + ".txt"); break;
                             }
                         }
                     }

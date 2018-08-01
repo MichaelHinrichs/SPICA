@@ -41,6 +41,8 @@
             this.TxtOutFolder = new System.Windows.Forms.TextBox();
             this.BtnConvert = new System.Windows.Forms.Button();
             this.ProgressConv = new System.Windows.Forms.ProgressBar();
+            this.ChkExportMaterials = new System.Windows.Forms.CheckBox();
+            this.CmbMatFormat = new System.Windows.Forms.ComboBox();
             this.GrpInput.SuspendLayout();
             this.GrpOutput.SuspendLayout();
             this.SuspendLayout();
@@ -70,11 +72,13 @@
             // 
             this.TxtInputFolder.Location = new System.Drawing.Point(6, 22);
             this.TxtInputFolder.Name = "TxtInputFolder";
-            this.TxtInputFolder.Size = new System.Drawing.Size(310, 22);
+            this.TxtInputFolder.Size = new System.Drawing.Size(310, 26);
             this.TxtInputFolder.TabIndex = 0;
             // 
             // GrpOutput
             // 
+            this.GrpOutput.Controls.Add(this.CmbMatFormat);
+            this.GrpOutput.Controls.Add(this.ChkExportMaterials);
             this.GrpOutput.Controls.Add(this.ChkPrefixNames);
             this.GrpOutput.Controls.Add(this.ChkExportModels);
             this.GrpOutput.Controls.Add(this.ChkExportAnimations);
@@ -84,18 +88,18 @@
             this.GrpOutput.Controls.Add(this.TxtOutFolder);
             this.GrpOutput.Location = new System.Drawing.Point(12, 69);
             this.GrpOutput.Name = "GrpOutput";
-            this.GrpOutput.Size = new System.Drawing.Size(360, 140);
-            this.GrpOutput.TabIndex = 0;
+            this.GrpOutput.Size = new System.Drawing.Size(360, 165);
+            this.GrpOutput.TabIndex = 1;
             this.GrpOutput.TabStop = false;
             this.GrpOutput.Text = "Output folder";
             // 
             // ChkPrefixNames
             // 
             this.ChkPrefixNames.AutoSize = true;
-            this.ChkPrefixNames.Location = new System.Drawing.Point(6, 117);
+            this.ChkPrefixNames.Location = new System.Drawing.Point(6, 140);
             this.ChkPrefixNames.Name = "ChkPrefixNames";
-            this.ChkPrefixNames.Size = new System.Drawing.Size(167, 17);
-            this.ChkPrefixNames.TabIndex = 7;
+            this.ChkPrefixNames.Size = new System.Drawing.Size(197, 23);
+            this.ChkPrefixNames.TabIndex = 10;
             this.ChkPrefixNames.Text = "Add original name as prefix";
             this.ChkPrefixNames.UseVisualStyleBackColor = true;
             // 
@@ -104,7 +108,7 @@
             this.ChkExportModels.AutoSize = true;
             this.ChkExportModels.Location = new System.Drawing.Point(6, 48);
             this.ChkExportModels.Name = "ChkExportModels";
-            this.ChkExportModels.Size = new System.Drawing.Size(99, 17);
+            this.ChkExportModels.Size = new System.Drawing.Size(118, 23);
             this.ChkExportModels.TabIndex = 4;
             this.ChkExportModels.Text = "Export models";
             this.ChkExportModels.UseVisualStyleBackColor = true;
@@ -112,10 +116,10 @@
             // ChkExportAnimations
             // 
             this.ChkExportAnimations.AutoSize = true;
-            this.ChkExportAnimations.Location = new System.Drawing.Point(6, 94);
+            this.ChkExportAnimations.Location = new System.Drawing.Point(6, 117);
             this.ChkExportAnimations.Name = "ChkExportAnimations";
-            this.ChkExportAnimations.Size = new System.Drawing.Size(119, 17);
-            this.ChkExportAnimations.TabIndex = 6;
+            this.ChkExportAnimations.Size = new System.Drawing.Size(141, 23);
+            this.ChkExportAnimations.TabIndex = 9;
             this.ChkExportAnimations.Text = "Export animations";
             this.ChkExportAnimations.UseVisualStyleBackColor = true;
             // 
@@ -124,8 +128,8 @@
             this.ChkExportTextures.AutoSize = true;
             this.ChkExportTextures.Location = new System.Drawing.Point(6, 71);
             this.ChkExportTextures.Name = "ChkExportTextures";
-            this.ChkExportTextures.Size = new System.Drawing.Size(103, 17);
-            this.ChkExportTextures.TabIndex = 5;
+            this.ChkExportTextures.Size = new System.Drawing.Size(123, 23);
+            this.ChkExportTextures.TabIndex = 6;
             this.ChkExportTextures.Text = "Export textures";
             this.ChkExportTextures.UseVisualStyleBackColor = true;
             // 
@@ -138,8 +142,8 @@
             "Valve StudioMdl (*.smd)"});
             this.CmbFormat.Location = new System.Drawing.Point(162, 49);
             this.CmbFormat.Name = "CmbFormat";
-            this.CmbFormat.Size = new System.Drawing.Size(192, 21);
-            this.CmbFormat.TabIndex = 8;
+            this.CmbFormat.Size = new System.Drawing.Size(192, 27);
+            this.CmbFormat.TabIndex = 5;
             // 
             // BtnBrowseOut
             // 
@@ -155,7 +159,7 @@
             // 
             this.TxtOutFolder.Location = new System.Drawing.Point(6, 20);
             this.TxtOutFolder.Name = "TxtOutFolder";
-            this.TxtOutFolder.Size = new System.Drawing.Size(310, 22);
+            this.TxtOutFolder.Size = new System.Drawing.Size(310, 26);
             this.TxtOutFolder.TabIndex = 2;
             // 
             // BtnConvert
@@ -163,7 +167,7 @@
             this.BtnConvert.Location = new System.Drawing.Point(276, 329);
             this.BtnConvert.Name = "BtnConvert";
             this.BtnConvert.Size = new System.Drawing.Size(96, 24);
-            this.BtnConvert.TabIndex = 9;
+            this.BtnConvert.TabIndex = 11;
             this.BtnConvert.Text = "Convert";
             this.BtnConvert.UseVisualStyleBackColor = true;
             this.BtnConvert.Click += new System.EventHandler(this.BtnConvert_Click);
@@ -175,9 +179,31 @@
             this.ProgressConv.Size = new System.Drawing.Size(258, 24);
             this.ProgressConv.TabIndex = 0;
             // 
+            // ChkExportMaterials
+            // 
+            this.ChkExportMaterials.AutoSize = true;
+            this.ChkExportMaterials.Location = new System.Drawing.Point(6, 94);
+            this.ChkExportMaterials.Name = "ChkExportMaterials";
+            this.ChkExportMaterials.Size = new System.Drawing.Size(157, 23);
+            this.ChkExportMaterials.TabIndex = 7;
+            this.ChkExportMaterials.Text = "Export Material Data";
+            this.ChkExportMaterials.UseVisualStyleBackColor = true;
+            // 
+            // CmbMatFormat
+            // 
+            this.CmbMatFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CmbMatFormat.FormattingEnabled = true;
+            this.CmbMatFormat.Items.AddRange(new object[] {
+            "MaxScript (*.ms)",
+            "Material Dump (*.txt)"});
+            this.CmbMatFormat.Location = new System.Drawing.Point(162, 92);
+            this.CmbMatFormat.Name = "CmbMatFormat";
+            this.CmbMatFormat.Size = new System.Drawing.Size(192, 27);
+            this.CmbMatFormat.TabIndex = 8;
+            // 
             // FrmExport
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(384, 361);
             this.Controls.Add(this.ProgressConv);
@@ -214,5 +240,7 @@
         private System.Windows.Forms.TextBox TxtOutFolder;
         private System.Windows.Forms.Button BtnConvert;
         private System.Windows.Forms.ProgressBar ProgressConv;
+        private System.Windows.Forms.ComboBox CmbMatFormat;
+        private System.Windows.Forms.CheckBox ChkExportMaterials;
     }
 }

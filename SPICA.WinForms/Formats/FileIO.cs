@@ -74,7 +74,8 @@ namespace SPICA.WinForms.Formats
                     "COLLADA 1.4.1|*.dae|" +
                     "Valve StudioMdl|*.smd|" +
                     "Binary Ctr H3D|*.bch|" +
-                    "Material Script (Max)|*.ms";
+                    "Material Script (Max)|*.ms|" +
+                    "Material Dump|*.txt";
 
                 //Offer to save using model name if possible
                 if (State.ModelIndex > -1)
@@ -93,6 +94,7 @@ namespace SPICA.WinForms.Formats
                         case 2: new SMD(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
                         case 3: H3D.Save(SaveDlg.FileName, Scene); break;
                         case 4: new MaterialScript(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
+                        case 5: new MaterialDump(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
                     }
                 }
             }
