@@ -5,10 +5,12 @@ using SPICA.Formats.Generic.StudioMdl;
 using SPICA.Formats.Generic.MaterialScript;
 using SPICA.WinForms.Formats;
 
+
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SPICA.WinForms.Properties;
 
 namespace SPICA.WinForms
 {
@@ -99,7 +101,7 @@ namespace SPICA.WinForms
 
                             switch (Format)
                             {
-                                case 0: new DAE(Data, Index).Save(FileName + ".dae"); break;
+                                case 0: new DAE(Data, Index, -1, Settings.Default.DebugCopyVtxAlpha).Save(FileName + ".dae"); break;
                                 case 1: new SMD(Data, Index).Save(FileName + ".smd"); break;
                             }
                         }

@@ -285,6 +285,12 @@ namespace SPICA.WinForms
                 Renderer.Merge(Scene);
                 UpdateViewport();
             }
+
+            private void Menu_Options_Debug_VtxAlphaCopy__Click(object sender, EventArgs e)
+            {
+                Settings.Default.DebugCopyVtxAlpha = !Settings.Default.DebugCopyVtxAlpha;
+                Menu_Options_Debug_VtxAlphaCopy.Checked = Settings.Default.DebugCopyVtxAlpha;
+            }
             #endregion
 
             #region Help
@@ -804,6 +810,8 @@ namespace SPICA.WinForms
             if (Settings.Default.RenderShowGrid) ToggleGrid();
             if (Settings.Default.RenderShowAxis) ToggleAxis();
             if (Settings.Default.UIShowSideMenu) ToggleSide();
+
+            Menu_Options_Debug_VtxAlphaCopy.Checked = Settings.Default.DebugCopyVtxAlpha;
         }
 
         private void SaveSettings()

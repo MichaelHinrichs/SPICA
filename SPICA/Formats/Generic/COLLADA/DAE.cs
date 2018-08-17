@@ -38,7 +38,7 @@ namespace SPICA.Formats.Generic.COLLADA
 
         public DAE() { }
 
-        public DAE(H3D Scene, int MdlIndex, int AnimIndex = -1)
+        public DAE(H3D Scene, int MdlIndex, int AnimIndex = -1, bool copyVtxAlpha = false)
         {
             if (MdlIndex != -1)
             {
@@ -157,11 +157,14 @@ namespace SPICA.Formats.Generic.COLLADA
                     library_geometries = new List<DAEGeometry>();
                 }
 
+                //for each mesh in the model
                 for (int MeshIndex = 0; MeshIndex < Mdl.Meshes.Count; MeshIndex++)
                 {
+                    //if Silhouette mesh, skip it
                     if (Mdl.Meshes[MeshIndex].Type == H3DMeshType.Silhouette) continue;
 
                     H3DMesh Mesh = Mdl.Meshes[MeshIndex];
+                    bool hasVtxColor = false;
 
                     PICAVertex[] Vertices = MeshTransform.GetWorldSpaceVertices(Mdl.Skeleton, Mesh);
 
@@ -194,12 +197,15 @@ namespace SPICA.Formats.Generic.COLLADA
                         Geometry.mesh.triangles.AddInput("VERTEX", $"#{VertsId}");
                         Geometry.mesh.triangles.Set_p(SM.Indices);
 
+                        //for each attribute of the mesh (vertex colors, texture coords, normals, etc)
                         foreach (PICAAttribute Attr in Mesh.Attributes)
                         {
                             if (Attr.Name >= PICAAttributeName.BoneIndex) continue;
+                            if (Attr.Name == PICAAttributeName.Color) hasVtxColor = true;
 
                             string[] Values = new string[Vertices.Length];
 
+                            //for each vertex, add the "stringified" attribute to the above array
                             for (int Index = 0; Index < Vertices.Length; Index++)
                             {
                                 PICAVertex v = Vertices[Index];
@@ -217,7 +223,7 @@ namespace SPICA.Formats.Generic.COLLADA
                             }
 
                             int Elements = 0;
-
+                            //set the number of elements that the attribute has
                             switch (Attr.Name)
                             {
                                 case PICAAttributeName.Position:  Elements = 3; break;
@@ -281,6 +287,47 @@ namespace SPICA.Formats.Generic.COLLADA
                                 Geometry.mesh.triangles.AddInput("TEXCOORD", $"#{Source.id}", 0, (uint)Attr.Name - 4);
                             }
                         } //Attributes Loop
+
+                        //if CopyVtxAlpha, add a copy of vertex alpha as a map channel
+                        if (copyVtxAlpha && hasVtxColor)
+                        {
+                            string[] Values = new string[Vertices.Length];
+                            bool bAlpha = false;
+                            for (int Index = 0; Index < Vertices.Length; Index++)
+                            {
+                                if (Vertices[Index].Color.W < 1) bAlpha = true;
+                                Values[Index] = DAEUtils.Vector2l1Str(Vertices[Index].Color);
+                            }
+                            if (bAlpha)
+                            {
+                                DAESource Source = new DAESource();
+
+                                Source.name = $"{MeshName}_VtxAlpha";
+                                Source.id = $"{Source.name}_id";
+
+                                Source.float_array = new DAEArray()
+                                {
+                                    id = $"{Source.name}_array_id",
+                                    count = (uint)(Vertices.Length * 2),
+                                    data = string.Join(" ", Values)
+                                };
+
+                                DAEAccessor Accessor = new DAEAccessor()
+                                {
+                                    source = $"#{Source.float_array.id}",
+                                    count = (uint)Vertices.Length,
+                                    stride = 2
+                                };
+
+                                Accessor.AddParams("float", "S", "T");
+
+                                Source.technique_common.accessor = Accessor;
+
+                                Geometry.mesh.source.Add(Source);
+
+                                Geometry.mesh.triangles.AddInput("TEXCOORD", $"#{Source.id}", 0, 3); //TODO: calculate set at map channel # +1
+                            }
+                        }
 
                         library_geometries.Add(Geometry);
 

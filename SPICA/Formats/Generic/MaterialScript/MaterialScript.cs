@@ -14,6 +14,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 
+
+//TODO: add projection mapping compatibility
+
 namespace SPICA.Formats.Generic.MaterialScript
 {
     public class MaterialScript

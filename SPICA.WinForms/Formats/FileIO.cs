@@ -6,6 +6,7 @@ using SPICA.Formats.Generic.StudioMdl;
 using SPICA.Formats.Generic.MaterialScript;
 using SPICA.Formats.GFL2.Model;
 using SPICA.Rendering;
+using SPICA.WinForms.Properties;
 
 using System.IO;
 using System.Windows.Forms;
@@ -90,7 +91,7 @@ namespace SPICA.WinForms.Formats
 
                     switch (SaveDlg.FilterIndex)
                     {
-                        case 1: new DAE(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
+                        case 1: new DAE(Scene, MdlIndex, AnimIndex, Settings.Default.DebugCopyVtxAlpha).Save(SaveDlg.FileName); break;
                         case 2: new SMD(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;
                         case 3: H3D.Save(SaveDlg.FileName, Scene); break;
                         case 4: new MaterialScript(Scene, MdlIndex, AnimIndex).Save(SaveDlg.FileName); break;

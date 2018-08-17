@@ -97,6 +97,7 @@
             this.SideIcons = new System.Windows.Forms.ToolStrip();
             this.ToolButtonExport = new System.Windows.Forms.ToolStripButton();
             this.ToolButtonImport = new System.Windows.Forms.ToolStripButton();
+            this.Menu_Options_Debug_VtxAlphaCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.TopMenu.SuspendLayout();
             this.AnimControlsPanel.SuspendLayout();
             this.TopIcons.SuspendLayout();
@@ -200,7 +201,7 @@
             this.Menu_Options_Renderer_ShowInfo,
             this.Menu_Options_Renderer_WireframeMode});
             this.Menu_Options_Renderer.Name = "Menu_Options_Renderer";
-            this.Menu_Options_Renderer.Size = new System.Drawing.Size(191, 28);
+            this.Menu_Options_Renderer.Size = new System.Drawing.Size(216, 28);
             this.Menu_Options_Renderer.Text = "&Renderer";
             // 
             // Menu_Options_Renderer_ShowGrid
@@ -243,7 +244,7 @@
             this.Menu_Options_UserInterface.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.Menu_Options_UserInterface_ShowSide});
             this.Menu_Options_UserInterface.Name = "Menu_Options_UserInterface";
-            this.Menu_Options_UserInterface.Size = new System.Drawing.Size(191, 28);
+            this.Menu_Options_UserInterface.Size = new System.Drawing.Size(216, 28);
             this.Menu_Options_UserInterface.Text = "&User interface";
             // 
             // Menu_Options_UserInterface_ShowSide
@@ -256,9 +257,10 @@
             // Menu_Options_Debug
             // 
             this.Menu_Options_Debug.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.Menu_Options_Debug_ReloadModel});
+            this.Menu_Options_Debug_ReloadModel,
+            this.Menu_Options_Debug_VtxAlphaCopy});
             this.Menu_Options_Debug.Name = "Menu_Options_Debug";
-            this.Menu_Options_Debug.Size = new System.Drawing.Size(191, 28);
+            this.Menu_Options_Debug.Size = new System.Drawing.Size(216, 28);
             this.Menu_Options_Debug.Text = "&Debug";
             // 
             // Menu_Options_Debug_ReloadModel
@@ -266,7 +268,7 @@
             this.Menu_Options_Debug_ReloadModel.Name = "Menu_Options_Debug_ReloadModel";
             this.Menu_Options_Debug_ReloadModel.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.R)));
-            this.Menu_Options_Debug_ReloadModel.Size = new System.Drawing.Size(290, 28);
+            this.Menu_Options_Debug_ReloadModel.Size = new System.Drawing.Size(338, 28);
             this.Menu_Options_Debug_ReloadModel.Text = "&Reload Model";
             this.Menu_Options_Debug_ReloadModel.Click += new System.EventHandler(this.Menu_Options_Debug_ReloadModel__Click);
             // 
@@ -895,6 +897,13 @@
             this.ToolButtonImport.Size = new System.Drawing.Size(28, 28);
             this.ToolButtonImport.ToolTipText = "Import...";
             // 
+            // Menu_Options_Debug_VtxAlphaCopy
+            // 
+            this.Menu_Options_Debug_VtxAlphaCopy.Name = "Menu_Options_Debug_VtxAlphaCopy";
+            this.Menu_Options_Debug_VtxAlphaCopy.Size = new System.Drawing.Size(338, 28);
+            this.Menu_Options_Debug_VtxAlphaCopy.Text = "&Create Vtx Alpha Copy on Export";
+            this.Menu_Options_Debug_VtxAlphaCopy.Click += new System.EventHandler(this.Menu_Options_Debug_VtxAlphaCopy__Click);
+            // 
             // FrmMain
             // 
             this.AllowDrop = true;
@@ -1014,5 +1023,6 @@
         private GUI.SUIList TexturesList;
         private System.Windows.Forms.PictureBox TexturePreview;
         private System.Windows.Forms.Label TextureInfo;
+        private System.Windows.Forms.ToolStripMenuItem Menu_Options_Debug_VtxAlphaCopy;
     }
 }
