@@ -32,6 +32,8 @@
             this.BtnBrowseIn = new System.Windows.Forms.Button();
             this.TxtInputFolder = new System.Windows.Forms.TextBox();
             this.GrpOutput = new System.Windows.Forms.GroupBox();
+            this.CmbMatFormat = new System.Windows.Forms.ComboBox();
+            this.ChkExportMaterials = new System.Windows.Forms.CheckBox();
             this.ChkPrefixNames = new System.Windows.Forms.CheckBox();
             this.ChkExportModels = new System.Windows.Forms.CheckBox();
             this.ChkExportAnimations = new System.Windows.Forms.CheckBox();
@@ -41,8 +43,7 @@
             this.TxtOutFolder = new System.Windows.Forms.TextBox();
             this.BtnConvert = new System.Windows.Forms.Button();
             this.ProgressConv = new System.Windows.Forms.ProgressBar();
-            this.ChkExportMaterials = new System.Windows.Forms.CheckBox();
-            this.CmbMatFormat = new System.Windows.Forms.ComboBox();
+            this.ChkRecurse = new System.Windows.Forms.CheckBox();
             this.GrpInput.SuspendLayout();
             this.GrpOutput.SuspendLayout();
             this.SuspendLayout();
@@ -77,6 +78,7 @@
             // 
             // GrpOutput
             // 
+            this.GrpOutput.Controls.Add(this.ChkRecurse);
             this.GrpOutput.Controls.Add(this.CmbMatFormat);
             this.GrpOutput.Controls.Add(this.ChkExportMaterials);
             this.GrpOutput.Controls.Add(this.ChkPrefixNames);
@@ -88,10 +90,32 @@
             this.GrpOutput.Controls.Add(this.TxtOutFolder);
             this.GrpOutput.Location = new System.Drawing.Point(12, 69);
             this.GrpOutput.Name = "GrpOutput";
-            this.GrpOutput.Size = new System.Drawing.Size(360, 165);
+            this.GrpOutput.Size = new System.Drawing.Size(360, 194);
             this.GrpOutput.TabIndex = 1;
             this.GrpOutput.TabStop = false;
             this.GrpOutput.Text = "Output folder";
+            // 
+            // CmbMatFormat
+            // 
+            this.CmbMatFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CmbMatFormat.FormattingEnabled = true;
+            this.CmbMatFormat.Items.AddRange(new object[] {
+            "MaxScript (*.ms)",
+            "Material Dump (*.txt)"});
+            this.CmbMatFormat.Location = new System.Drawing.Point(162, 92);
+            this.CmbMatFormat.Name = "CmbMatFormat";
+            this.CmbMatFormat.Size = new System.Drawing.Size(192, 27);
+            this.CmbMatFormat.TabIndex = 8;
+            // 
+            // ChkExportMaterials
+            // 
+            this.ChkExportMaterials.AutoSize = true;
+            this.ChkExportMaterials.Location = new System.Drawing.Point(6, 94);
+            this.ChkExportMaterials.Name = "ChkExportMaterials";
+            this.ChkExportMaterials.Size = new System.Drawing.Size(157, 23);
+            this.ChkExportMaterials.TabIndex = 7;
+            this.ChkExportMaterials.Text = "Export Material Data";
+            this.ChkExportMaterials.UseVisualStyleBackColor = true;
             // 
             // ChkPrefixNames
             // 
@@ -179,27 +203,15 @@
             this.ProgressConv.Size = new System.Drawing.Size(258, 24);
             this.ProgressConv.TabIndex = 0;
             // 
-            // ChkExportMaterials
+            // ChkRecurse
             // 
-            this.ChkExportMaterials.AutoSize = true;
-            this.ChkExportMaterials.Location = new System.Drawing.Point(6, 94);
-            this.ChkExportMaterials.Name = "ChkExportMaterials";
-            this.ChkExportMaterials.Size = new System.Drawing.Size(157, 23);
-            this.ChkExportMaterials.TabIndex = 7;
-            this.ChkExportMaterials.Text = "Export Material Data";
-            this.ChkExportMaterials.UseVisualStyleBackColor = true;
-            // 
-            // CmbMatFormat
-            // 
-            this.CmbMatFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CmbMatFormat.FormattingEnabled = true;
-            this.CmbMatFormat.Items.AddRange(new object[] {
-            "MaxScript (*.ms)",
-            "Material Dump (*.txt)"});
-            this.CmbMatFormat.Location = new System.Drawing.Point(162, 92);
-            this.CmbMatFormat.Name = "CmbMatFormat";
-            this.CmbMatFormat.Size = new System.Drawing.Size(192, 27);
-            this.CmbMatFormat.TabIndex = 8;
+            this.ChkRecurse.AutoSize = true;
+            this.ChkRecurse.Location = new System.Drawing.Point(6, 165);
+            this.ChkRecurse.Name = "ChkRecurse";
+            this.ChkRecurse.Size = new System.Drawing.Size(88, 23);
+            this.ChkRecurse.TabIndex = 11;
+            this.ChkRecurse.Text = "Recursive";
+            this.ChkRecurse.UseVisualStyleBackColor = true;
             // 
             // FrmExport
             // 
@@ -216,6 +228,7 @@
             this.Name = "FrmExport";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Batch Exporter";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmExport_FormClosing);
             this.Load += new System.EventHandler(this.FrmExport_Load);
             this.GrpInput.ResumeLayout(false);
             this.GrpInput.PerformLayout();
@@ -242,5 +255,6 @@
         private System.Windows.Forms.ProgressBar ProgressConv;
         private System.Windows.Forms.ComboBox CmbMatFormat;
         private System.Windows.Forms.CheckBox ChkExportMaterials;
+        private System.Windows.Forms.CheckBox ChkRecurse;
     }
 }

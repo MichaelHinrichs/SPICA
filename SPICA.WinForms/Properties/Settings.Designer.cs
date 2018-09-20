@@ -12,7 +12,7 @@ namespace SPICA.WinForms.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.6.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -104,6 +104,126 @@ namespace SPICA.WinForms.Properties {
             }
             set {
                 this["DebugCopyVtxAlpha"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BatchExportModels {
+            get {
+                return ((bool)(this["BatchExportModels"]));
+            }
+            set {
+                this["BatchExportModels"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BatchExportAnims {
+            get {
+                return ((bool)(this["BatchExportAnims"]));
+            }
+            set {
+                this["BatchExportAnims"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BatchExportTexs {
+            get {
+                return ((bool)(this["BatchExportTexs"]));
+            }
+            set {
+                this["BatchExportTexs"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BatchPrefixNames {
+            get {
+                return ((bool)(this["BatchPrefixNames"]));
+            }
+            set {
+                this["BatchPrefixNames"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BatchExportMats {
+            get {
+                return ((bool)(this["BatchExportMats"]));
+            }
+            set {
+                this["BatchExportMats"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BatchRecurse {
+            get {
+                return ((bool)(this["BatchRecurse"]));
+            }
+            set {
+                this["BatchRecurse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int BatchFormat {
+            get {
+                return ((int)(this["BatchFormat"]));
+            }
+            set {
+                this["BatchFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int BatchMatFormat {
+            get {
+                return ((int)(this["BatchMatFormat"]));
+            }
+            set {
+                this["BatchMatFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BatchInputFolder {
+            get {
+                return ((string)(this["BatchInputFolder"]));
+            }
+            set {
+                this["BatchInputFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BatchOutputFolder {
+            get {
+                return ((string)(this["BatchOutputFolder"]));
+            }
+            set {
+                this["BatchOutputFolder"] = value;
             }
         }
     }

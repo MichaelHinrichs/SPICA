@@ -4,13 +4,15 @@ using SPICA.Formats.Generic.COLLADA;
 using SPICA.Formats.Generic.StudioMdl;
 using SPICA.Formats.Generic.MaterialScript;
 using SPICA.WinForms.Formats;
+using SPICA.WinForms.Properties;
 
 
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SPICA.WinForms.Properties;
+
+//TODO: save export settings between {runs}
 
 namespace SPICA.WinForms
 {
@@ -21,12 +23,41 @@ namespace SPICA.WinForms
             InitializeComponent();
         }
 
+        //load export setings on frame load
         private void FrmExport_Load(object sender, EventArgs e)
         {
-            CmbFormat.SelectedIndex = 0;
-            CmbMatFormat.SelectedIndex = 0;
+            TxtInputFolder.Text = Settings.Default.BatchInputFolder;
+            TxtOutFolder.Text = Settings.Default.BatchOutputFolder;
+
+            ChkExportModels.Checked = Settings.Default.BatchExportModels;
+            ChkExportAnimations.Checked = Settings.Default.BatchExportAnims;
+            ChkExportTextures.Checked = Settings.Default.BatchExportTexs;
+            ChkPrefixNames.Checked = Settings.Default.BatchPrefixNames;
+            ChkExportMaterials.Checked = Settings.Default.BatchExportMats;
+            ChkRecurse.Checked = Settings.Default.BatchRecurse;
+
+            CmbFormat.SelectedIndex = Settings.Default.BatchFormat;
+            CmbMatFormat.SelectedIndex = Settings.Default.BatchMatFormat;
         }
 
+        //save export setings on frame close
+        private void FrmExport_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Settings.Default.BatchInputFolder = TxtInputFolder.Text;
+            Settings.Default.BatchOutputFolder = TxtOutFolder.Text;
+
+            Settings.Default.BatchExportModels = ChkExportModels.Checked;
+            Settings.Default.BatchExportAnims = ChkExportAnimations.Checked;
+            Settings.Default.BatchExportTexs = ChkExportTextures.Checked;
+            Settings.Default.BatchPrefixNames = ChkPrefixNames.Checked;
+            Settings.Default.BatchExportMats = ChkExportMaterials.Checked;
+            Settings.Default.BatchRecurse = ChkRecurse.Checked;
+
+            Settings.Default.BatchFormat = CmbFormat.SelectedIndex;
+            Settings.Default.BatchMatFormat = CmbMatFormat.SelectedIndex;
+        }
+
+        //
         private void BtnBrowseIn_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog Browser = new FolderBrowserDialog())
@@ -35,6 +66,7 @@ namespace SPICA.WinForms
             }
         }
 
+        //
         private void BtnBrowseOut_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog Browser = new FolderBrowserDialog())
@@ -42,6 +74,7 @@ namespace SPICA.WinForms
                 if (Browser.ShowDialog() == DialogResult.OK) TxtOutFolder.Text = Browser.SelectedPath;
             }
         }
+
 
         private void BtnConvert_Click(object sender, EventArgs e)
         {
@@ -58,6 +91,7 @@ namespace SPICA.WinForms
 
             if (!Directory.Exists(TxtOutFolder.Text))
             {
+                //TODO: offer to create output dir "Output folder not found!  Should it be created?"
                 MessageBox.Show(
                     "Output folder not found!",
                     "Error",
@@ -67,29 +101,50 @@ namespace SPICA.WinForms
                 return;
             }
 
-            string[] Files = Directory.GetFiles(TxtInputFolder.Text);
 
             bool ExportModels = ChkExportModels.Checked;
             bool ExportAnims = ChkExportAnimations.Checked;
             bool ExportTexs = ChkExportTextures.Checked;
             bool PrefixNames = ChkPrefixNames.Checked;
             bool ExportMats = ChkExportMaterials.Checked;
+            bool Recurse = ChkRecurse.Checked;
 
             int Format = CmbFormat.SelectedIndex;
             int MatFormat = CmbMatFormat.SelectedIndex;
 
+            //get all files (optionally recursive) in input folder
+            DirectoryInfo Folder = new DirectoryInfo(TxtInputFolder.Text);
+            FileInfo[] Files = Folder.GetFiles("*.*", Recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            //TODO: check and warn on empty input folder
+
+            string subPath;
+            string outPath = TxtOutFolder.Text;
+            if (!outPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                outPath += Path.DirectorySeparatorChar;
+            }
+
             int FileIndex = 0;
 
-            //TODO: Use Parallel loop for more speed and keep UI responsive
-            foreach (string File in Files)
+            //for each one      //TODO: Use Parallel loop for more speed and keep UI responsive
+            foreach (FileInfo File in Files)
             {
-                H3D Data = FormatIdentifier.IdentifyAndOpen(File);
+                subPath = GetRelativePath(File.DirectoryName, TxtInputFolder.Text);
 
+                if (subPath.Length > 0 && !Directory.Exists(outPath + subPath))
+                {
+                    Directory.CreateDirectory(outPath + subPath);
+                }
+
+                //open input file, read and convert to H3D data
+                H3D Data = FormatIdentifier.IdentifyAndOpen(File.FullName);
+
+                //if there is data (input file was valid)
                 if (Data != null)
                 {
-                    string BaseName = PrefixNames ? Path.GetFileNameWithoutExtension(File) + "_" : string.Empty;
+                    string BaseName = PrefixNames ? Path.GetFileNameWithoutExtension(File.FullName) + "_" : string.Empty;
 
-                    BaseName = Path.Combine(TxtOutFolder.Text, BaseName);
+                    BaseName = Path.Combine(outPath + subPath, BaseName);
 
                     if (!PrefixNames) BaseName += Path.DirectorySeparatorChar;
 
@@ -139,19 +194,31 @@ namespace SPICA.WinForms
                     {
                         foreach (H3DTexture Tex in Data.Textures)
                         {
-                            Tex.ToBitmap().Save(Path.Combine(TxtOutFolder.Text, Tex.Name + ".png"));
+                            Tex.ToBitmap().Save(Path.Combine(outPath + subPath, Tex.Name + ".png"));
                         }
                     }
                 }
 
+                //update progress bar
                 float Progress = ++FileIndex;
-
                 Progress = (Progress / Files.Length) * 100;
-
                 ProgressConv.Value = (int)Progress;
 
                 Application.DoEvents();
             }
+        }
+
+
+        private string GetRelativePath(string filespec, string folder)
+        {
+            Uri pathUri = new Uri(filespec);
+            // Folders must end in a slash
+            if (!folder.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            {
+                folder += Path.DirectorySeparatorChar;
+            }
+            Uri folderUri = new Uri(folder);
+            return Uri.UnescapeDataString(folderUri.MakeRelativeUri(pathUri).ToString().Replace('/', Path.DirectorySeparatorChar));
         }
     }
 }
