@@ -226,5 +226,17 @@ namespace SPICA.WinForms.Properties {
                 this["BatchOutputFolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("bgrs, bcls, bcls2")]
+        public string BatchIgnoredExts {
+            get {
+                return ((string)(this["BatchIgnoredExts"]));
+            }
+            set {
+                this["BatchIgnoredExts"] = value;
+            }
+        }
     }
 }

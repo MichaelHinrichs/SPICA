@@ -28,6 +28,7 @@ namespace SPICA.WinForms
         {
             TxtInputFolder.Text = Settings.Default.BatchInputFolder;
             TxtOutFolder.Text = Settings.Default.BatchOutputFolder;
+            TxtIgnoredExt.Text = Settings.Default.BatchIgnoredExts;
 
             ChkExportModels.Checked = Settings.Default.BatchExportModels;
             ChkExportAnimations.Checked = Settings.Default.BatchExportAnims;
@@ -45,6 +46,7 @@ namespace SPICA.WinForms
         {
             Settings.Default.BatchInputFolder = TxtInputFolder.Text;
             Settings.Default.BatchOutputFolder = TxtOutFolder.Text;
+            Settings.Default.BatchIgnoredExts = TxtIgnoredExt.Text;
 
             Settings.Default.BatchExportModels = ChkExportModels.Checked;
             Settings.Default.BatchExportAnims = ChkExportAnimations.Checked;
@@ -112,6 +114,8 @@ namespace SPICA.WinForms
             int Format = CmbFormat.SelectedIndex;
             int MatFormat = CmbMatFormat.SelectedIndex;
 
+            BtnConvert.Enabled = false;
+
             //get all files (optionally recursive) in input folder
             DirectoryInfo Folder = new DirectoryInfo(TxtInputFolder.Text);
             FileInfo[] Files = Folder.GetFiles("*.*", Recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
@@ -126,9 +130,20 @@ namespace SPICA.WinForms
 
             int FileIndex = 0;
 
+            string[] ignoredExts = TxtIgnoredExt.Text.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+
             //for each one      //TODO: Use Parallel loop for more speed and keep UI responsive
             foreach (FileInfo File in Files)
             {
+                //TODO: add ext blacklist
+                if (Array.IndexOf(ignoredExts, File.Extension.ToLower().Remove(0, 1)) > -1)
+                {
+                    FileIndex++;
+                    continue;
+                }
+
+                Console.WriteLine("Processing "+ File.FullName);
+
                 subPath = GetRelativePath(File.DirectoryName, TxtInputFolder.Text);
 
                 if (subPath.Length > 0 && !Directory.Exists(outPath + subPath))
@@ -206,6 +221,9 @@ namespace SPICA.WinForms
 
                 Application.DoEvents();
             }
+
+            ProgressConv.Value = 100;
+            BtnConvert.Enabled = true;
         }
 
 
@@ -217,6 +235,7 @@ namespace SPICA.WinForms
             {
                 folder += Path.DirectorySeparatorChar;
             }
+            if (filespec + Path.DirectorySeparatorChar == folder) return "";
             Uri folderUri = new Uri(folder);
             return Uri.UnescapeDataString(folderUri.MakeRelativeUri(pathUri).ToString().Replace('/', Path.DirectorySeparatorChar));
         }

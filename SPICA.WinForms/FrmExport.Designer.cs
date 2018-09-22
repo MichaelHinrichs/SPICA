@@ -32,6 +32,7 @@
             this.BtnBrowseIn = new System.Windows.Forms.Button();
             this.TxtInputFolder = new System.Windows.Forms.TextBox();
             this.GrpOutput = new System.Windows.Forms.GroupBox();
+            this.ChkRecurse = new System.Windows.Forms.CheckBox();
             this.CmbMatFormat = new System.Windows.Forms.ComboBox();
             this.ChkExportMaterials = new System.Windows.Forms.CheckBox();
             this.ChkPrefixNames = new System.Windows.Forms.CheckBox();
@@ -43,7 +44,8 @@
             this.TxtOutFolder = new System.Windows.Forms.TextBox();
             this.BtnConvert = new System.Windows.Forms.Button();
             this.ProgressConv = new System.Windows.Forms.ProgressBar();
-            this.ChkRecurse = new System.Windows.Forms.CheckBox();
+            this.TxtIgnoredExt = new System.Windows.Forms.TextBox();
+            this.LblIgnoredExt = new System.Windows.Forms.Label();
             this.GrpInput.SuspendLayout();
             this.GrpOutput.SuspendLayout();
             this.SuspendLayout();
@@ -78,6 +80,8 @@
             // 
             // GrpOutput
             // 
+            this.GrpOutput.Controls.Add(this.LblIgnoredExt);
+            this.GrpOutput.Controls.Add(this.TxtIgnoredExt);
             this.GrpOutput.Controls.Add(this.ChkRecurse);
             this.GrpOutput.Controls.Add(this.CmbMatFormat);
             this.GrpOutput.Controls.Add(this.ChkExportMaterials);
@@ -90,10 +94,20 @@
             this.GrpOutput.Controls.Add(this.TxtOutFolder);
             this.GrpOutput.Location = new System.Drawing.Point(12, 69);
             this.GrpOutput.Name = "GrpOutput";
-            this.GrpOutput.Size = new System.Drawing.Size(360, 194);
+            this.GrpOutput.Size = new System.Drawing.Size(360, 221);
             this.GrpOutput.TabIndex = 1;
             this.GrpOutput.TabStop = false;
             this.GrpOutput.Text = "Output folder";
+            // 
+            // ChkRecurse
+            // 
+            this.ChkRecurse.AutoSize = true;
+            this.ChkRecurse.Location = new System.Drawing.Point(6, 165);
+            this.ChkRecurse.Name = "ChkRecurse";
+            this.ChkRecurse.Size = new System.Drawing.Size(88, 23);
+            this.ChkRecurse.TabIndex = 11;
+            this.ChkRecurse.Text = "Recursive";
+            this.ChkRecurse.UseVisualStyleBackColor = true;
             // 
             // CmbMatFormat
             // 
@@ -203,15 +217,22 @@
             this.ProgressConv.Size = new System.Drawing.Size(258, 24);
             this.ProgressConv.TabIndex = 0;
             // 
-            // ChkRecurse
+            // TxtIgnoredExt
             // 
-            this.ChkRecurse.AutoSize = true;
-            this.ChkRecurse.Location = new System.Drawing.Point(6, 165);
-            this.ChkRecurse.Name = "ChkRecurse";
-            this.ChkRecurse.Size = new System.Drawing.Size(88, 23);
-            this.ChkRecurse.TabIndex = 11;
-            this.ChkRecurse.Text = "Recursive";
-            this.ChkRecurse.UseVisualStyleBackColor = true;
+            this.TxtIgnoredExt.Location = new System.Drawing.Point(137, 185);
+            this.TxtIgnoredExt.Name = "TxtIgnoredExt";
+            this.TxtIgnoredExt.Size = new System.Drawing.Size(217, 26);
+            this.TxtIgnoredExt.TabIndex = 12;
+            this.TxtIgnoredExt.Text = "bgrs, bcls, bcls2";
+            // 
+            // LblIgnoredExt
+            // 
+            this.LblIgnoredExt.AutoSize = true;
+            this.LblIgnoredExt.Location = new System.Drawing.Point(6, 188);
+            this.LblIgnoredExt.Name = "LblIgnoredExt";
+            this.LblIgnoredExt.Size = new System.Drawing.Size(125, 19);
+            this.LblIgnoredExt.TabIndex = 13;
+            this.LblIgnoredExt.Text = "Ignored Extensions";
             // 
             // FrmExport
             // 
@@ -256,5 +277,7 @@
         private System.Windows.Forms.ComboBox CmbMatFormat;
         private System.Windows.Forms.CheckBox ChkExportMaterials;
         private System.Windows.Forms.CheckBox ChkRecurse;
+        private System.Windows.Forms.Label LblIgnoredExt;
+        private System.Windows.Forms.TextBox TxtIgnoredExt;
     }
 }

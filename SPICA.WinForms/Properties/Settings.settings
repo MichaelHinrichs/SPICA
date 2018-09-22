@@ -53,5 +53,8 @@
     <Setting Name="BatchOutputFolder" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="BatchIgnoredExts" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bgrs, bcls, bcls2</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
