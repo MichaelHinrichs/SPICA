@@ -9,6 +9,8 @@ namespace SPICA.Formats.Generic.Blender
 {
 	public class BLEND
 	{
+		const float SCALE = 0.05f;
+	
 		private readonly string blenderPath = "";
 		private string pythonScript = "import bpy\nimport bmesh\n";
 
@@ -86,8 +88,9 @@ namespace SPICA.Formats.Generic.Blender
 
 					res += $"bm{mi}_{smi} = bmesh.new()\n";
 
+					// Y and Z are swapped in blender's space
 					foreach (var vert in vertices)
-						res += $"bm{mi}_{smi}.verts.new(({vert.Position.X},{vert.Position.Y},{vert.Position.Z}))\n";
+						res += $"bm{mi}_{smi}.verts.new([{vert.Position.X * SCALE},{-vert.Position.Z * SCALE},{vert.Position.Y * SCALE}])\n";
 
 					res += $"bm{mi}_{smi}.to_mesh(m{mi}_{smi})\n";
 					res += $"bm{mi}_{smi}.free()\n";
