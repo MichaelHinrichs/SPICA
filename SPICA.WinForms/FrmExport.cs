@@ -74,7 +74,6 @@ namespace SPICA.WinForms
 
             int FileIndex = 0;
 
-            //TODO: Use Parallel loop for more speed and keep UI responsive
             foreach (string File in Files)
             {
                 H3D Data = FormatIdentifier.IdentifyAndOpen(File);
