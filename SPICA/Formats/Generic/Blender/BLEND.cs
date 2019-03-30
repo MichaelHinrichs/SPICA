@@ -1,6 +1,7 @@
 ﻿using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.Formats.CtrH3D.Model.Mesh;
+using SPICA.PICA.Converters;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,7 +57,7 @@ namespace SPICA.Formats.Generic.Blender
 			if (!File.Exists(blenderPath))
 				throw new FileNotFoundException("Blender not found");
 
-			pythonScript += $"bpy.ops.wm.save_as_mainfile(filepath = '{fileName}')\n";
+			pythonScript += $"bpy.ops.wm.save_as_mainfile(filepath='{fileName}')\n";
 
 			var scriptPath = Path.Combine(Path.GetTempPath(), "export_" + Path.GetFileNameWithoutExtension(fileName) + ".py");
 			using (StreamWriter sw = new StreamWriter(scriptPath))
@@ -77,6 +78,7 @@ namespace SPICA.Formats.Generic.Blender
 		private string CleanUpScene(H3DModel model)
 		{
 			var armature = model.Skeleton.Count == 0 ? "None" : $"bpy.data.armatures.new('{model.Skeleton[0].Name}')";
+			var modelName = model.Skeleton.Count == 0 ? model.Name : model.Skeleton[0].Name;
 
 			return
 				"import bpy\n" +
@@ -86,7 +88,7 @@ namespace SPICA.Formats.Generic.Blender
 				"bpy.context.scene.render.engine = 'BLENDER_RENDER'\n" +
 				"bpy.ops.object.select_all()\n" +
 				"bpy.ops.object.delete()\n" +
-				$"root = bpy.data.objects.new('{model.Name}', {armature})\n" +
+				$"root = bpy.data.objects.new('{modelName}', {armature})\n" +
 				"bpy.context.scene.objects.link(root)\n";
 		}
 
@@ -144,7 +146,6 @@ namespace SPICA.Formats.Generic.Blender
 				if (bone.ParentIndex == 0) continue;
 
 				res += $"b{bi}.parent = b{bone.ParentIndex}\n";
-				//res += $"b{bi}.use_connect = True\n";
 			}
 
 			res += "bpy.ops.object.editmode_toggle()\n";
@@ -155,7 +156,7 @@ namespace SPICA.Formats.Generic.Blender
 				var bone = model.Skeleton[bi];
 				var t = bone.Transform;
 
-				res += $"b{bi} = root.pose.bones[{bi-1}]\n";
+				res += $"b{bi} = root.pose.bones[{bi - 1}]\n";
 				res += $"b{bi}.matrix_basis = (({t.M11},{t.M12},{t.M13},{t.M14}),({t.M21},{t.M22},{t.M23},{t.M24}),({t.M31},{t.M32},{t.M33},{t.M34}),({t.M41},{t.M42},{t.M43},{t.M44}))\n";
 			}
 
@@ -167,69 +168,106 @@ namespace SPICA.Formats.Generic.Blender
 		private string BuildModel(H3DModel model)
 		{
 			var res = "";
+			res += $"m = bpy.data.meshes.new('{model.Name}')\n";
+			res += $"o = bpy.data.objects.new('{model.Name}', m)\n";
+			res += $"o.parent = root\n";
+			res += $"bpy.context.scene.objects.link(o)\n";
+			res += $"bm = bmesh.new()\n";
 
-			for (var mi = 0; mi < model.Meshes.Count; ++mi)
+			var vertices = new List<BLENDVertex>();
+			var tris = new List<int[]>();
+			var groups = new List<string>();
+			var materials = new List<int>();
+
+			foreach (var mesh in model.Meshes)
 			{
-				var mesh = model.Meshes[mi];
-
 				if (mesh.Type == H3DMeshType.Silhouette) continue;
 
-				var vertices = mesh.GetVertices();
+				materials.Add(mesh.MaterialIndex);
 
-				res += $"m{mi} = bpy.data.meshes.new('{model.MeshNodesTree.Find(mesh.NodeIndex)}')\n";
-				res += $"o{mi} = bpy.data.objects.new('{model.MeshNodesTree.Find(mesh.NodeIndex)}', m{mi})\n";
-				res += $"o{mi}.parent = root\n";
-				res += $"bpy.context.scene.objects.link(o{mi})\n";
-				res += $"vs{mi} = []\n";
-				res += $"uv{mi} = []\n";
-				res += $"bm{mi} = bmesh.new()\n";
-
-				for (var smi = 0; smi < mesh.SubMeshes.Count; ++smi)
+				var newVertices = mesh.GetVertices();
+				var ids = new Dictionary<int, int>();
+				for (var vi = 0; vi < newVertices.Length; ++vi)
 				{
-					var subMesh = mesh.SubMeshes[smi];
-					var tris = subMesh.Indices;
+					var vert = newVertices[vi];
+					var index = vertices.FindIndex(x => x.vert.Position.X == vert.Position.X && x.vert.Position.Y == vert.Position.Y && x.vert.Position.Z == vert.Position.Z);
 
-					// Y and Z are swapped in blender's space
-					for (var vi = 0; vi < vertices.Length; ++vi)
+					if (index == -1) // New vertex
 					{
-						var vert = vertices[vi];
-					
-						res += $"v{vi} = bm{mi}.verts.new([{vert.Position.X},{-vert.Position.Z},{vert.Position.Y}])\n";
-						res += $"v{vi}.normal = [{vert.Normal.X},{-vert.Normal.Z},{vert.Normal.Y}]\n";
-						res += $"vs{mi}.append(v{vi})\n";
-						res += $"uv{mi}.append(({vert.TexCoord0.X},{vert.TexCoord0.Y}))\n";
+						ids.Add(vi, vertices.Count);
+
+						var name = model.MeshNodesTree.Find(mesh.NodeIndex);
+						var groupIndex = groups.IndexOf(name);
+
+						if (groupIndex == -1)
+						{
+							vertices.Add(new BLENDVertex(vert, groups.Count));
+							groups.Add(name);
+						}
+						else
+						{
+							vertices.Add(new BLENDVertex(vert, groupIndex));
+						}
 					}
-
-					// Blender does not like duplicate tris, so we need to add an additional check
-					var placedTris = new List<ushort[]>();
-					for (ushort i = 0; i < tris.Length; i += 3)
+					else
 					{
-						var tri = new ushort[] { tris[i], tris[i + 1], tris[i + 2] };
-
-						if (placedTris.Any(x => x.SequenceEqual(tri)))
-							continue;
-
-						res += $"bm{mi}.faces.new([vs{mi}[{tri[0]}],vs{mi}[{tri[1]}],vs{mi}[{tri[2]}]]).smooth = True\n";
-						placedTris.Add(tri);
+						ids.Add(vi, index);
 					}
 				}
 
-				// UV coords in blender are mapped per loop
-				res += $"bm{mi}.verts.index_update()\n";
-				res += $"uvl{mi} = bm{mi}.loops.layers.uv.new()\n";
-				res += $"for face in bm{mi}.faces:\n\tfor loop in face.loops:\n\t\t";
-				res += $"loop[uvl{mi}].uv = uv{mi}[loop.vert.index]\n";
+				var newTris = new List<int[]>();
+				foreach (var subMesh in mesh.SubMeshes)
+				{
+					for (var ti = 0; ti < subMesh.Indices.Length; ti += 3)
+					{
+						var tri = new int[] { subMesh.Indices[ti], subMesh.Indices[ti + 1], subMesh.Indices[ti + 2] };
 
-				res += $"bm{mi}.to_mesh(m{mi})\n";
-				res += $"bm{mi}.free()\n";
-				res += $"o{mi}.data.materials.append(mat{mesh.MaterialIndex})\n";
+						if (newTris.Any(x => x.SequenceEqual(tri))) continue;
 
-				// For some reason, blender struggles with custom normals, until you toggle edit mode
-				res += $"bpy.context.scene.objects.active = o{mi}\n";
-				res += $"o{mi}.select = True\n";
-				res += $"bpy.ops.object.editmode_toggle()\n";
-				res += $"bpy.ops.object.editmode_toggle()\n";
-				res += $"bpy.ops.object.select_all(action='DESELECT')\n";
+						newTris.Add(tri);
+						tris.Add(new[] { ids[tri[0]], ids[tri[1]], ids[tri[2]] });
+					}
+				}
+			}
+
+			res += $"vs = []\n";
+			res += $"uv = []\n";
+
+			// Y and Z are swapped in blender's space
+			foreach (var v in vertices)
+			{
+				res += $"v = bm.verts.new([{v.vert.Position.X},{-v.vert.Position.Z},{v.vert.Position.Y}])\n";
+				res += $"v.normal = [{v.vert.Normal.X},{-v.vert.Normal.Z},{v.vert.Normal.Y}]\n";
+				res += $"vs.append(v)\n";
+				res += $"uv.append(({v.vert.TexCoord0.X},{v.vert.TexCoord0.Y}))\n";
+			}
+
+			foreach (var tri in tris)
+				res += $"bm.faces.new([vs[{tri[0]}],vs[{tri[1]}],vs[{tri[2]}]]).smooth = True\n";
+
+			// UV coords in blender are mapped per loop
+			res += $"bm.verts.index_update()\n";
+			res += $"uvl = bm.loops.layers.uv.new()\n";
+			res += $"for face in bm.faces:\n\tfor loop in face.loops:\n\t\t";
+			res += $"loop[uvl].uv = uv[loop.vert.index]\n";
+
+			foreach (var mat in materials)
+				res += $"o.data.materials.append(mat{mat})\n";
+
+			res += $"bm.to_mesh(m)\n";
+			res += $"bm.free()\n";
+			res += $"bpy.context.scene.objects.active = o\n";
+			res += $"o.select = True\n";
+			res += $"bpy.ops.object.editmode_toggle()\n";
+			res += $"bpy.ops.object.editmode_toggle()\n";
+			res += $"bpy.ops.object.select_all(action='DESELECT')\n";
+
+			for (var gi = 0; gi < groups.Count; ++gi)
+			{
+				var indexes = vertices.Where(x => x.vertGroup == gi).Select(x => vertices.IndexOf(x));
+			
+				res += $"vg = o.vertex_groups.new('{groups[gi]}')\n";
+				res += $"vg.add([{string.Join(",", indexes)}], 1, 'ADD')\n";
 			}
 
 			return res;
