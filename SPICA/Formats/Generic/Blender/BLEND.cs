@@ -43,6 +43,9 @@ namespace SPICA.Formats.Generic.Blender
 				if (model.Materials.Count > 0)
 					pythonScript += BuildMaterials(model);
 
+				if (model.Skeleton.Count > 0)
+					pythonScript += BuildArmature(model);
+
 				if (model.Meshes.Count > 0)
 					pythonScript += BuildModel(model);
 			}
@@ -78,6 +81,8 @@ namespace SPICA.Formats.Generic.Blender
 			return
 				"import bpy\n" +
 				"import bmesh\n" +
+				"import math\n" +
+				"import mathutils\n" +
 				"bpy.context.scene.render.engine = 'BLENDER_RENDER'\n" +
 				"bpy.ops.object.select_all()\n" +
 				"bpy.ops.object.delete()\n" +
@@ -117,6 +122,48 @@ namespace SPICA.Formats.Generic.Blender
 			return res;
 		}
 
+		private string BuildArmature(H3DModel model)
+		{
+			var res = "bpy.context.scene.objects.active = root\n";
+			res += "bpy.ops.object.editmode_toggle()\n";
+
+			// First bone is the armature
+			for (var bi = 1; bi < model.Skeleton.Count; ++bi)
+			{
+				var bone = model.Skeleton[bi];
+
+				res += $"b{bi} = root.data.edit_bones.new('{bone.Name}')\n";
+				res += $"b{bi}.tail = (0,0,1)\n";
+			}
+
+			// We have to do it a second time to set the parents
+			for (var bi = 1; bi < model.Skeleton.Count; ++bi)
+			{
+				var bone = model.Skeleton[bi];
+
+				if (bone.ParentIndex == 0) continue;
+
+				res += $"b{bi}.parent = b{bone.ParentIndex}\n";
+				//res += $"b{bi}.use_connect = True\n";
+			}
+
+			res += "bpy.ops.object.editmode_toggle()\n";
+
+			// And a third time for the pose bones, which are different entities in blender
+			for (var bi = 1; bi < model.Skeleton.Count; ++bi)
+			{
+				var bone = model.Skeleton[bi];
+				var t = bone.Transform;
+
+				res += $"b{bi} = root.pose.bones[{bi-1}]\n";
+				res += $"b{bi}.matrix_basis = (({t.M11},{t.M12},{t.M13},{t.M14}),({t.M21},{t.M22},{t.M23},{t.M24}),({t.M31},{t.M32},{t.M33},{t.M34}),({t.M41},{t.M42},{t.M43},{t.M44}))\n";
+			}
+
+			res += "bpy.ops.object.select_all(action='DESELECT')\n";
+
+			return res;
+		}
+
 		private string BuildModel(H3DModel model)
 		{
 			var res = "";
@@ -147,8 +194,8 @@ namespace SPICA.Formats.Generic.Blender
 					{
 						var vert = vertices[vi];
 					
-						res += $"v{vi} = bm{mi}.verts.new([{vert.Position.X * SCALE},{-vert.Position.Z * SCALE},{vert.Position.Y * SCALE}])\n";
-						res += $"v{vi}.normal = [{vert.Normal.X},{vert.Normal.Z},{vert.Normal.Y}]\n";
+						res += $"v{vi} = bm{mi}.verts.new([{vert.Position.X},{-vert.Position.Z},{vert.Position.Y}])\n";
+						res += $"v{vi}.normal = [{vert.Normal.X},{-vert.Normal.Z},{vert.Normal.Y}]\n";
 						res += $"vs{mi}.append(v{vi})\n";
 						res += $"uv{mi}.append(({vert.TexCoord0.X},{vert.TexCoord0.Y}))\n";
 					}
@@ -167,6 +214,7 @@ namespace SPICA.Formats.Generic.Blender
 					}
 				}
 
+				// UV coords in blender are mapped per loop
 				res += $"bm{mi}.verts.index_update()\n";
 				res += $"uvl{mi} = bm{mi}.loops.layers.uv.new()\n";
 				res += $"for face in bm{mi}.faces:\n\tfor loop in face.loops:\n\t\t";
@@ -176,8 +224,7 @@ namespace SPICA.Formats.Generic.Blender
 				res += $"bm{mi}.free()\n";
 				res += $"o{mi}.data.materials.append(mat{mesh.MaterialIndex})\n";
 
-				// Sometimes the normals get messed up when entered manually, so we toggle editmode to make them right again
-				// It should not work but somehow it does
+				// For some reason, blender struggles with custom normals, until you toggle edit mode
 				res += $"bpy.context.scene.objects.active = o{mi}\n";
 				res += $"o{mi}.select = True\n";
 				res += $"bpy.ops.object.editmode_toggle()\n";
