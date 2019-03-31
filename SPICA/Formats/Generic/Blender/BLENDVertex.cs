@@ -2,7 +2,7 @@
 
 namespace SPICA.Formats.Generic.Blender
 {
-	public struct BLENDVertex
+	public class BLENDVertex
 	{
 		public PICAVertex vert;
 		public int vertGroup;
@@ -12,5 +12,7 @@ namespace SPICA.Formats.Generic.Blender
 			vert = v;
 			vertGroup = g;
 		}
+
+		public bool Matches(PICAVertex other) => other.Position.X == vert.Position.X && other.Position.Y == vert.Position.Y && other.Position.Z == vert.Position.Z;
 	}
 }

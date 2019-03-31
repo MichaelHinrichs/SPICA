@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace SPICA.Formats.Generic.Blender
 {
@@ -173,9 +174,11 @@ namespace SPICA.Formats.Generic.Blender
 			res += $"o.parent = root\n";
 			res += $"bpy.context.scene.objects.link(o)\n";
 			res += $"bm = bmesh.new()\n";
+			res += $"uvl = bm.loops.layers.uv.new()\n";
 
 			var vertices = new List<BLENDVertex>();
 			var tris = new List<int[]>();
+			var loops = new List<BLENDLoop>();
 			var groups = new List<string>();
 			var materials = new List<int>();
 
@@ -183,36 +186,30 @@ namespace SPICA.Formats.Generic.Blender
 			{
 				if (mesh.Type == H3DMeshType.Silhouette) continue;
 
-				materials.Add(mesh.MaterialIndex);
+				if (!materials.Contains(mesh.MaterialIndex))
+					materials.Add(mesh.MaterialIndex);
+
+				var name = model.MeshNodesTree.Find(mesh.NodeIndex);
+
+				if (!groups.Contains(name))
+					groups.Add(name);
+
+				var groupIndex = groups.IndexOf(name);
 
 				var newVertices = mesh.GetVertices();
 				var ids = new Dictionary<int, int>();
 				for (var vi = 0; vi < newVertices.Length; ++vi)
 				{
 					var vert = newVertices[vi];
-					var index = vertices.FindIndex(x => x.vert.Position.X == vert.Position.X && x.vert.Position.Y == vert.Position.Y && x.vert.Position.Z == vert.Position.Z);
+					var index = vertices.FindIndex(x => x.Matches(vert));
 
 					if (index == -1) // New vertex
 					{
-						ids.Add(vi, vertices.Count);
-
-						var name = model.MeshNodesTree.Find(mesh.NodeIndex);
-						var groupIndex = groups.IndexOf(name);
-
-						if (groupIndex == -1)
-						{
-							vertices.Add(new BLENDVertex(vert, groups.Count));
-							groups.Add(name);
-						}
-						else
-						{
-							vertices.Add(new BLENDVertex(vert, groupIndex));
-						}
+						index = vertices.Count;
+						vertices.Add(new BLENDVertex(vert, groupIndex));
 					}
-					else
-					{
-						ids.Add(vi, index);
-					}
+
+					ids.Add(vi, index);
 				}
 
 				var newTris = new List<int[]>();
@@ -225,13 +222,25 @@ namespace SPICA.Formats.Generic.Blender
 						if (newTris.Any(x => x.SequenceEqual(tri))) continue;
 
 						newTris.Add(tri);
-						tris.Add(new[] { ids[tri[0]], ids[tri[1]], ids[tri[2]] });
+						var formattedTri = tri.Select(x => ids[x]).ToArray();
+
+						for (var i = 0; i < tri.Length; ++i)
+						{
+							var vert = newVertices[tri[i]];
+							loops.Add(new BLENDLoop
+							{
+								vert = formattedTri[i],
+								face = tris.Count,
+								uv = new Vector2(vert.TexCoord0.X, vert.TexCoord0.Y)
+							});
+						}
+
+						tris.Add(formattedTri);
 					}
 				}
 			}
 
 			res += $"vs = []\n";
-			res += $"uv = []\n";
 
 			// Y and Z are swapped in blender's space
 			foreach (var v in vertices)
@@ -239,17 +248,23 @@ namespace SPICA.Formats.Generic.Blender
 				res += $"v = bm.verts.new([{v.vert.Position.X},{-v.vert.Position.Z},{v.vert.Position.Y}])\n";
 				res += $"v.normal = [{v.vert.Normal.X},{-v.vert.Normal.Z},{v.vert.Normal.Y}]\n";
 				res += $"vs.append(v)\n";
-				res += $"uv.append(({v.vert.TexCoord0.X},{v.vert.TexCoord0.Y}))\n";
 			}
 
-			foreach (var tri in tris)
-				res += $"bm.faces.new([vs[{tri[0]}],vs[{tri[1]}],vs[{tri[2]}]]).smooth = True\n";
+			res += "bm.verts.index_update()\n";
 
-			// UV coords in blender are mapped per loop
-			res += $"bm.verts.index_update()\n";
-			res += $"uvl = bm.loops.layers.uv.new()\n";
-			res += $"for face in bm.faces:\n\tfor loop in face.loops:\n\t\t";
-			res += $"loop[uvl].uv = uv[loop.vert.index]\n";
+			for (var ti = 0; ti < tris.Count; ++ti)
+			{
+				var tri = tris[ti];
+
+				res += $"f = bm.faces.new([vs[{tri[0]}],vs[{tri[1]}],vs[{tri[2]}]])\n";
+				res += "f.smooth = True\n";
+				res += "lv = {}\n";
+
+				foreach (var loop in loops.Where(x => x.face == ti))
+					res += $"lv['{loop.vert}'] = [{loop.uv.X},{loop.uv.Y}]\n";
+
+				res += $"for loop in f.loops: loop[uvl].uv = lv[str(loop.vert.index)]\n";
+			}
 
 			foreach (var mat in materials)
 				res += $"o.data.materials.append(mat{mat})\n";
