@@ -312,6 +312,7 @@
     <Compile Include="Formats\Generic\Blender\BLEND.cs" />
     <Compile Include="Formats\Generic\Blender\BLENDLoop.cs" />
     <Compile Include="Formats\Generic\Blender\BLENDVertex.cs" />
+    <Compile Include="Formats\Generic\Blender\BLENDVertGroup.cs" />
     <Compile Include="Formats\Generic\COLLADA\DAE.cs" />
     <Compile Include="Formats\Generic\COLLADA\DAEAccessor.cs" />
     <Compile Include="Formats\Generic\COLLADA\DAEAnimation.cs" />

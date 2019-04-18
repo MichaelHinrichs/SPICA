@@ -1,14 +1,15 @@
 ﻿using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.Formats.CtrH3D.Model.Mesh;
-using SPICA.PICA.Converters;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 
 namespace SPICA.Formats.Generic.Blender
 {
@@ -21,6 +22,8 @@ namespace SPICA.Formats.Generic.Blender
 
 		public BLEND(H3D scene, int mdlIndex, int animIndex = -1)
 		{
+			Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+
 			switch (Environment.OSVersion.Platform)
 			{
 				case PlatformID.Win32NT:
@@ -46,7 +49,7 @@ namespace SPICA.Formats.Generic.Blender
 				if (model.Materials.Count > 0)
 					BuildMaterials(model);
 
-				if (model.Skeleton.Count > 0)
+				if ((model.Skeleton?.Count ?? 0) > 0)
 					BuildArmature(model);
 
 				if (model.Meshes.Count > 0)
@@ -59,7 +62,7 @@ namespace SPICA.Formats.Generic.Blender
 			if (!File.Exists(blenderPath))
 				throw new FileNotFoundException("Blender not found");
 
-			pythonScript.Append($"bpy.ops.wm.save_as_mainfile(filepath='{fileName}')\n");
+			pythonScript.AppendLine($"bpy.ops.wm.save_as_mainfile(filepath='{fileName}')");
 
 			var scriptPath = Path.Combine(Path.GetTempPath(), "export_" + Path.GetFileNameWithoutExtension(fileName) + ".py");
 			using (StreamWriter sw = new StreamWriter(scriptPath))
@@ -82,9 +85,34 @@ namespace SPICA.Formats.Generic.Blender
 			var armature = model.Skeleton.Count == 0 ? "None" : $"bpy.data.armatures.new('{model.Skeleton[0].Name}')";
 			var modelName = model.Skeleton.Count == 0 ? model.Name : model.Skeleton[0].Name;
 
+			#region Base Script
 			pythonScript = new StringBuilder(
 $@"import bpy
 import bmesh
+import math
+import mathutils
+def vec_roll_to_mat3(vec, roll):
+	target = mathutils.Vector((0,1,0))
+	nor = vec.normalized()
+	axis = target.cross(nor)
+	if axis.dot(axis) > 0.0000000001:
+		axis.normalize()
+		theta = target.angle(nor)
+		bMatrix = mathutils.Matrix.Rotation(theta, 3, axis)
+	else:
+		updown = 1 if target.dot(nor) > 0 else -1
+		bMatrix = mathutils.Matrix.Scale(updown, 3)
+		bMatrix[2][2] = 1.0
+	rMatrix = mathutils.Matrix.Rotation(roll, 3, nor)
+	mat = rMatrix * bMatrix
+	return mat
+def mat3_to_vec_roll(mat):
+	vec = mat.col[1]
+	vecmat = vec_roll_to_mat3(mat.col[1], 0)
+	vecmatinv = vecmat.inverted()
+	rollmat = vecmatinv * mat
+	roll = math.atan2(rollmat[0][2], rollmat[2][2])
+	return vec, roll
 bpy.context.scene.render.engine = 'BLENDER_RENDER'
 bpy.ops.object.select_all()
 bpy.ops.object.delete()
@@ -92,6 +120,7 @@ root = bpy.data.objects.new('{modelName}', {armature})
 bpy.context.scene.objects.link(root)
 "
 			);
+			#endregion
 		}
 
 		private void BuildMaterials(H3DModel model)
@@ -99,7 +128,7 @@ bpy.context.scene.objects.link(root)
 			for (var mi = 0; mi < model.Materials.Count; ++mi)
 			{
 				var mat = model.Materials[mi];
-				pythonScript.Append($"mat{mi} = bpy.data.materials.new('{mat.Name}')\n");
+				pythonScript.AppendLine($"mat{mi} = bpy.data.materials.new('{mat.Name}')");
 
 				for (var ti = 0; ti < 3; ++ti)
 				{
@@ -115,65 +144,67 @@ bpy.context.scene.objects.link(root)
 
 					if (tex == null) continue;
 
-					pythonScript.Append($"tex{mi}_{ti} = bpy.data.textures.new('{tex}', type='IMAGE')\n");
-					pythonScript.Append($"slt{mi}_{ti} = mat{mi}.texture_slots.add()\n");
-					pythonScript.Append($"slt{mi}_{ti}.texture = tex{mi}_{ti}\n");
+					pythonScript.AppendLine($"tex{mi}_{ti} = bpy.data.textures.new('{tex}', type='IMAGE')");
+					pythonScript.AppendLine($"slt{mi}_{ti} = mat{mi}.texture_slots.add()");
+					pythonScript.AppendLine($"slt{mi}_{ti}.texture = tex{mi}_{ti}");
 				}
 			}
 		}
 
 		private void BuildArmature(H3DModel model)
 		{
-			pythonScript.Append("bpy.context.scene.objects.active = root\n");
-			pythonScript.Append("bpy.ops.object.editmode_toggle()\n");
+			pythonScript.AppendLine("bpy.context.scene.objects.active = root");
+			pythonScript.AppendLine("bpy.ops.object.editmode_toggle()");
 
-			// First bone is the armature
-			for (var bi = 1; bi < model.Skeleton.Count; ++bi)
+			var parentString = new StringBuilder();
+
+			for (var bi = 0; bi < model.Skeleton.Count; ++bi)
 			{
 				var bone = model.Skeleton[bi];
+				var t = bone.GetWorldTransform(model.Skeleton)
+					* new Matrix4x4(
+						SCALE, 0f, 0f, 0f,
+						0f, SCALE, 0f, 0f,
+						0f, 0f, SCALE, 0f,
+						0f, 0f, 0f, 1f
+					)
+					* new Matrix4x4(
+						1f, 0f, 0f, 0f,
+						0f, (float)Math.Cos(-Math.PI / 2), -(float)Math.Sin(-Math.PI / 2), 0f,
+						0f, (float)Math.Sin(-Math.PI / 2), (float)Math.Cos(-Math.PI / 2), 0f,
+						0f, 0f, 0f, 1f
+					);
+				var pos = t.Translation;
 
-				pythonScript.Append($"b{bi} = root.data.edit_bones.new('{bone.Name}')\n");
-				pythonScript.Append($"b{bi}.tail = (0,0,1)\n");
+				if (bone.ParentIndex != -1)
+					parentString.AppendLine($"b{bi}.parent = b{bone.ParentIndex}");
+
+				pythonScript.AppendLine($"axis, roll = mat3_to_vec_roll(mathutils.Matrix((({t.M11},{t.M12},{t.M13},{t.M14}),({t.M21},{t.M22},{t.M23},{t.M24}),({t.M31},{t.M32},{t.M33},{t.M34}),({t.M41},{t.M42},{t.M43},{t.M44}))).to_3x3())");
+				pythonScript.AppendLine($"pos = mathutils.Vector([{pos.X},{pos.Y},{pos.Z}])");
+				pythonScript.AppendLine($"b{bi} = root.data.edit_bones.new('{bone.Name}')");
+				pythonScript.AppendLine($"b{bi}.head = pos");
+				pythonScript.AppendLine($"b{bi}.tail = pos + axis");
+				pythonScript.AppendLine($"b{bi}.roll = roll");
 			}
 
-			// We have to do it a second time to set the parents
-			for (var bi = 1; bi < model.Skeleton.Count; ++bi)
-			{
-				var bone = model.Skeleton[bi];
-
-				if (bone.ParentIndex == 0) continue;
-
-				pythonScript.Append($"b{bi}.parent = b{bone.ParentIndex}\n");
-			}
-
-			pythonScript.Append("bpy.ops.object.editmode_toggle()\n");
-
-			// And a third time for the pose bones, which are different entities in blender
-			for (var bi = 1; bi < model.Skeleton.Count; ++bi)
-			{
-				var bone = model.Skeleton[bi];
-				var t = bone.Transform;
-
-				pythonScript.Append($"b{bi} = root.pose.bones[{bi - 1}]\n");
-				pythonScript.Append($"b{bi}.matrix_basis = (({t.M11},{t.M12},{t.M13},{t.M14}),({t.M21},{t.M22},{t.M23},{t.M24}),({t.M31},{t.M32},{t.M33},{t.M34}),({t.M41},{t.M42},{t.M43},{t.M44}))\n");
-			}
-
-			pythonScript.Append("bpy.ops.object.select_all(action='DESELECT')\n");
+			pythonScript.Append(parentString);
+			pythonScript.AppendLine("bpy.ops.object.editmode_toggle()");
+			pythonScript.AppendLine("bpy.ops.object.select_all(action='DESELECT')");
 		}
 
 		private void BuildModel(H3DModel model)
 		{
-			pythonScript.Append($"m = bpy.data.meshes.new('{model.Name}')\n");
-			pythonScript.Append($"o = bpy.data.objects.new('{model.Name}', m)\n");
-			pythonScript.Append($"o.parent = root\n");
-			pythonScript.Append($"bpy.context.scene.objects.link(o)\n");
-			pythonScript.Append($"bm = bmesh.new()\n");
-			pythonScript.Append($"uvl = bm.loops.layers.uv.new()\n");
+			pythonScript.AppendLine($"m = bpy.data.meshes.new('{model.Name}')");
+			pythonScript.AppendLine($"o = bpy.data.objects.new('{model.Name}', m)");
+			pythonScript.AppendLine($"o.parent = root");
+			pythonScript.AppendLine($"bpy.context.scene.objects.link(o)");
+			pythonScript.AppendLine($"bm = bmesh.new()");
+			pythonScript.AppendLine($"uvl = bm.loops.layers.uv.new()");
 
 			var vertices = new List<BLENDVertex>();
 			var tris = new List<int[]>();
 			var loops = new List<BLENDLoop>();
-			var groups = new List<string>();
+			var groups = new List<BLENDVertGroup>();
 			var materials = new List<int>();
 
 			foreach (var mesh in model.Meshes)
@@ -182,13 +213,6 @@ bpy.context.scene.objects.link(root)
 
 				if (!materials.Contains(mesh.MaterialIndex))
 					materials.Add(mesh.MaterialIndex);
-
-				var name = model.MeshNodesTree.Find(mesh.NodeIndex);
-
-				if (!groups.Contains(name))
-					groups.Add(name);
-
-				var groupIndex = groups.IndexOf(name);
 
 				var newVertices = mesh.GetVertices();
 				var ids = new Dictionary<int, int>();
@@ -200,7 +224,7 @@ bpy.context.scene.objects.link(root)
 					if (index == -1) // New vertex
 					{
 						index = vertices.Count;
-						vertices.Add(new BLENDVertex(vert, groupIndex));
+						vertices.Add(new BLENDVertex(vert));
 					}
 
 					ids.Add(vi, index);
@@ -231,52 +255,130 @@ bpy.context.scene.objects.link(root)
 
 						tris.Add(formattedTri);
 					}
+
+					// Has armature and controller
+					if (subMesh.BoneIndicesCount > 0 && (model.Skeleton?.Count ?? 0) > 0)
+					{
+						if (subMesh.Skinning == H3DSubMeshSkinning.Smooth)
+						{
+							for (int vi = 0; vi < newVertices.Length; ++vi)
+							{
+								var vertex = newVertices[vi];
+
+								for (int i = 0; i < 4; i++)
+								{
+									var index = vertex.Indices[i];
+									var weight = vertex.Weights[i];
+
+									if (weight == 0) break;
+
+									if (index < subMesh.BoneIndices.Length && index >= 0)
+										index = subMesh.BoneIndices[index];
+									else
+										index = 0;
+
+									var gName = model.Skeleton[index].Name;
+									var gIndex = groups.FindIndex(x => x.name == gName);
+
+									if (gIndex == -1)
+									{
+										gIndex = groups.Count;
+										groups.Add(new BLENDVertGroup(gName));
+									}
+
+									var realVertex = vertices[ids[vi]];
+
+									if (!realVertex.vertGroup.ContainsKey(gIndex))
+										realVertex.vertGroup.Add(gIndex, weight);
+								}
+							}
+						}
+						else
+						{
+							for (int vi = 0; vi < newVertices.Length; ++vi)
+							{
+								var vertex = newVertices[vi];
+								var index = vertex.Indices[0];
+
+								if (index < subMesh.BoneIndices.Length && index >= 0)
+									index = subMesh.BoneIndices[index];
+								else
+									index = 0;
+
+								var gName = model.Skeleton[index].Name;
+
+								if (!groups.Any(x => x.name == gName))
+									groups.Add(new BLENDVertGroup(gName));
+
+								var gIndex = groups.FindIndex(x => x.name == gName);
+								var realVertex = vertices[ids[vi]];
+
+								if (!realVertex.vertGroup.ContainsKey(gIndex))
+									realVertex.vertGroup.Add(gIndex, 1f);
+							}
+						}
+					}
 				}
 			}
 
-			pythonScript.Append($"vs = []\n");
+			pythonScript.AppendLine($"vs = []");
 
 			// Y and Z are swapped in blender's space
 			foreach (var v in vertices)
 			{
-				pythonScript.Append($"v = bm.verts.new([{v.vert.Position.X},{-v.vert.Position.Z},{v.vert.Position.Y}])\n");
-				pythonScript.Append($"v.normal = [{v.vert.Normal.X},{-v.vert.Normal.Z},{v.vert.Normal.Y}]\n");
-				pythonScript.Append($"vs.append(v)\n");
+				var pos = new Vector3(v.vert.Position.X, -v.vert.Position.Z, v.vert.Position.Y) * SCALE;
+				var normal = new Vector3(v.vert.Normal.X, -v.vert.Normal.Z, v.vert.Normal.Y);
+
+				pythonScript.AppendLine($"v = bm.verts.new([{pos.X},{pos.Y},{pos.Z}])");
+				pythonScript.AppendLine($"v.normal = [{normal.X},{normal.Y},{normal.Z}]");
+				pythonScript.AppendLine($"vs.append(v)");
 			}
 
-			pythonScript.Append("bm.verts.index_update()\n");
+			pythonScript.AppendLine("bm.verts.index_update()");
 
 			for (var ti = 0; ti < tris.Count; ++ti)
 			{
 				var tri = tris[ti];
 
-				pythonScript.Append($"f = bm.faces.new([vs[{tri[0]}],vs[{tri[1]}],vs[{tri[2]}]])\n");
-				pythonScript.Append("f.smooth = True\n");
-				pythonScript.Append("lv = {}\n");
+				pythonScript.AppendLine($"f = bm.faces.new([vs[{tri[0]}],vs[{tri[1]}],vs[{tri[2]}]])");
+				pythonScript.AppendLine("f.smooth = True");
+				pythonScript.AppendLine("lv = {}");
 
 				foreach (var loop in loops.Where(x => x.face == ti))
-					pythonScript.Append($"lv['{loop.vert}'] = [{loop.uv.X},{loop.uv.Y}]\n");
+					pythonScript.AppendLine($"lv['{loop.vert}'] = [{loop.uv.X},{loop.uv.Y}]");
 
-				pythonScript.Append($"for loop in f.loops: loop[uvl].uv = lv[str(loop.vert.index)]\n");
+				pythonScript.AppendLine($"for loop in f.loops: loop[uvl].uv = lv[str(loop.vert.index)]");
 			}
 
 			foreach (var mat in materials)
-				pythonScript.Append($"o.data.materials.append(mat{mat})\n");
+				pythonScript.AppendLine($"o.data.materials.append(mat{mat})");
 
-			pythonScript.Append($"bm.to_mesh(m)\n");
-			pythonScript.Append($"bm.free()\n");
-			pythonScript.Append($"bpy.context.scene.objects.active = o\n");
-			pythonScript.Append($"o.select = True\n");
-			pythonScript.Append($"bpy.ops.object.editmode_toggle()\n");
-			pythonScript.Append($"bpy.ops.object.editmode_toggle()\n");
-			pythonScript.Append($"bpy.ops.object.select_all(action='DESELECT')\n");
+			pythonScript.AppendLine($"bm.to_mesh(m)");
+			pythonScript.AppendLine($"bm.free()");
+			pythonScript.AppendLine($"bpy.context.scene.objects.active = o");
+			pythonScript.AppendLine($"o.select = True");
+			pythonScript.AppendLine($"bpy.ops.object.editmode_toggle()");
+			pythonScript.AppendLine($"bpy.ops.object.editmode_toggle()");
+			pythonScript.AppendLine($"bpy.ops.object.select_all(action='DESELECT')");
 
 			for (var gi = 0; gi < groups.Count; ++gi)
 			{
-				var indexes = vertices.Where(x => x.vertGroup == gi).Select(x => vertices.IndexOf(x));
-			
-				pythonScript.Append($"vg = o.vertex_groups.new('{groups[gi]}')\n");
-				pythonScript.Append($"vg.add([{string.Join(",", indexes)}], 1, 'ADD')\n");
+				pythonScript.AppendLine($"vg = o.vertex_groups.new('{groups[gi].name}')");
+
+				foreach (var vert in vertices.Where(x => x.vertGroup.ContainsKey(gi)))
+				{
+					var weight = vert.vertGroup[gi];
+					var index = vertices.IndexOf(vert);
+
+					pythonScript.AppendLine($"vg.add([{index}], {weight}, 'ADD')");
+				}
+			}
+
+			if ((model.Skeleton?.Count ?? 0) > 0)
+			{
+				pythonScript.AppendLine($"mod = o.modifiers.new(name='Skeleton', type='ARMATURE')");
+				pythonScript.AppendLine($"mod.object = root");
+				pythonScript.AppendLine($"mod.use_deform_preserve_volume = True");
 			}
 		}
 		#endregion
