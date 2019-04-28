@@ -1,6 +1,8 @@
 ﻿using SPICA.Formats.CtrH3D;
+using SPICA.Formats.CtrH3D.Animation;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.Formats.CtrH3D.Model.Mesh;
+using SPICA.Math3D;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,7 +17,23 @@ namespace SPICA.Formats.Generic.Blender
 {
 	public class BLEND
 	{
-		const float SCALE = 0.01f;
+		const float PI = (float)Math.PI;
+		const float SCALE = 0.025f;
+		const float ANGLE = -PI / 2;
+
+		private readonly Matrix4x4 MTX_SCALE = new Matrix4x4(
+											SCALE, 0f, 0f, 0f,
+											0f, SCALE, 0f, 0f,
+											0f, 0f, SCALE, 0f,
+											0f, 0f, 0f, 1f
+										);
+
+		private readonly Matrix4x4 MTX_ANGLE = new Matrix4x4(
+											1f, 0f, 0f, 0f,
+											0f, (float)Math.Cos(ANGLE), (float)-Math.Sin(ANGLE), 0f,
+											0f, (float)Math.Sin(ANGLE), (float)Math.Cos(ANGLE), 0f,
+											0f, 0f, 0f, 1f
+									);
 
 		private readonly string blenderPath;
 		private StringBuilder pythonScript;
@@ -54,6 +72,9 @@ namespace SPICA.Formats.Generic.Blender
 
 				if (model.Meshes.Count > 0)
 					BuildModel(model);
+
+				if (animIndex != -1)
+					BuildAnimations(scene.SkeletalAnimations[animIndex], model);
 			}
 		}
 
@@ -64,19 +85,17 @@ namespace SPICA.Formats.Generic.Blender
 
 			pythonScript.AppendLine($"bpy.ops.wm.save_as_mainfile(filepath='{fileName}')");
 
-			var scriptPath = Path.Combine(Path.GetTempPath(), "export_" + Path.GetFileNameWithoutExtension(fileName) + ".py");
-			using (StreamWriter sw = new StreamWriter(scriptPath))
-			{
-				sw.Write(pythonScript);
-			}
+			var scriptPath = Path.Combine(Path.GetTempPath(), Path.GetFileNameWithoutExtension(fileName) + ".py");
+			File.WriteAllText(scriptPath, pythonScript.ToString());
 
 			var startInfo = new ProcessStartInfo
 			{
 				FileName = blenderPath,
-				Arguments = $"--python \"{scriptPath}\""
+				Arguments = $"-P \"{scriptPath}\" --factory-startup"
 			};
 
 			Process.Start(startInfo).WaitForExit();
+			//File.Delete(scriptPath);
 		}
 
 		#region Private Methods
@@ -85,42 +104,7 @@ namespace SPICA.Formats.Generic.Blender
 			var armature = model.Skeleton.Count == 0 ? "None" : $"bpy.data.armatures.new('{model.Skeleton[0].Name}')";
 			var modelName = model.Skeleton.Count == 0 ? model.Name : model.Skeleton[0].Name;
 
-			#region Base Script
-			pythonScript = new StringBuilder(
-$@"import bpy
-import bmesh
-import math
-import mathutils
-def vec_roll_to_mat3(vec, roll):
-	target = mathutils.Vector((0,1,0))
-	nor = vec.normalized()
-	axis = target.cross(nor)
-	if axis.dot(axis) > 0.0000000001:
-		axis.normalize()
-		theta = target.angle(nor)
-		bMatrix = mathutils.Matrix.Rotation(theta, 3, axis)
-	else:
-		updown = 1 if target.dot(nor) > 0 else -1
-		bMatrix = mathutils.Matrix.Scale(updown, 3)
-		bMatrix[2][2] = 1.0
-	rMatrix = mathutils.Matrix.Rotation(roll, 3, nor)
-	mat = rMatrix * bMatrix
-	return mat
-def mat3_to_vec_roll(mat):
-	vec = mat.col[1]
-	vecmat = vec_roll_to_mat3(mat.col[1], 0)
-	vecmatinv = vecmat.inverted()
-	rollmat = vecmatinv * mat
-	roll = math.atan2(rollmat[0][2], rollmat[2][2])
-	return vec, roll
-bpy.context.scene.render.engine = 'BLENDER_RENDER'
-bpy.ops.object.select_all()
-bpy.ops.object.delete()
-root = bpy.data.objects.new('{modelName}', {armature})
-bpy.context.scene.objects.link(root)
-"
-			);
-			#endregion
+			pythonScript = new StringBuilder($"import bpy\nimport bmesh\nfor o in bpy.data.objects: bpy.data.objects.remove(o, do_unlink=True)\nroot = bpy.data.objects.new('{modelName}', {armature})\nbpy.context.scene.collection.objects.link(root)\nbpy.context.scene.render.fps = 29\nbpy.context.scene.render.fps_base = {29f / 29.97f}\n");
 		}
 
 		private void BuildMaterials(H3DModel model)
@@ -144,16 +128,16 @@ bpy.context.scene.objects.link(root)
 
 					if (tex == null) continue;
 
-					pythonScript.AppendLine($"tex{mi}_{ti} = bpy.data.textures.new('{tex}', type='IMAGE')");
-					pythonScript.AppendLine($"slt{mi}_{ti} = mat{mi}.texture_slots.add()");
-					pythonScript.AppendLine($"slt{mi}_{ti}.texture = tex{mi}_{ti}");
+					//pythonScript.AppendLine($"tex{mi}_{ti} = bpy.data.textures.new('{tex}', type='IMAGE')");
+					//pythonScript.AppendLine($"slt{mi}_{ti} = mat{mi}.texture_slots.add()");
+					//pythonScript.AppendLine($"slt{mi}_{ti}.texture = tex{mi}_{ti}");
 				}
 			}
 		}
 
 		private void BuildArmature(H3DModel model)
 		{
-			pythonScript.AppendLine("bpy.context.scene.objects.active = root");
+			pythonScript.AppendLine("bpy.context.view_layer.objects.active = root");
 			pythonScript.AppendLine("bpy.ops.object.editmode_toggle()");
 
 			var parentString = new StringBuilder();
@@ -161,30 +145,20 @@ bpy.context.scene.objects.link(root)
 			for (var bi = 0; bi < model.Skeleton.Count; ++bi)
 			{
 				var bone = model.Skeleton[bi];
-				var t = bone.GetWorldTransform(model.Skeleton)
-					* new Matrix4x4(
-						SCALE, 0f, 0f, 0f,
-						0f, SCALE, 0f, 0f,
-						0f, 0f, SCALE, 0f,
-						0f, 0f, 0f, 1f
-					)
-					* new Matrix4x4(
-						1f, 0f, 0f, 0f,
-						0f, (float)Math.Cos(-Math.PI / 2), -(float)Math.Sin(-Math.PI / 2), 0f,
-						0f, (float)Math.Sin(-Math.PI / 2), (float)Math.Cos(-Math.PI / 2), 0f,
-						0f, 0f, 0f, 1f
-					);
-				var pos = t.Translation;
+				var t = bone.GetWorldTransform(model.Skeleton) * MTX_ANGLE * MTX_SCALE;
+
+				var head = t.Translation;
 
 				if (bone.ParentIndex != -1)
 					parentString.AppendLine($"b{bi}.parent = b{bone.ParentIndex}");
 
-				pythonScript.AppendLine($"axis, roll = mat3_to_vec_roll(mathutils.Matrix((({t.M11},{t.M12},{t.M13},{t.M14}),({t.M21},{t.M22},{t.M23},{t.M24}),({t.M31},{t.M32},{t.M33},{t.M34}),({t.M41},{t.M42},{t.M43},{t.M44}))).to_3x3())");
-				pythonScript.AppendLine($"pos = mathutils.Vector([{pos.X},{pos.Y},{pos.Z}])");
 				pythonScript.AppendLine($"b{bi} = root.data.edit_bones.new('{bone.Name}')");
-				pythonScript.AppendLine($"b{bi}.head = pos");
-				pythonScript.AppendLine($"b{bi}.tail = pos + axis");
-				pythonScript.AppendLine($"b{bi}.roll = roll");
+				pythonScript.AppendLine($"b{bi}.head = [{head.X},{head.Y},{head.Z}]");
+				pythonScript.AppendLine($"b{bi}.tail = [{head.X},{head.Y},{head.Z + 0.5f}]");
+
+				pythonScript.AppendLine($"b{bi}.use_local_location = True");
+				pythonScript.AppendLine($"b{bi}.use_inherit_rotation = True");
+				pythonScript.AppendLine($"b{bi}.use_inherit_scale = True");
 			}
 
 			pythonScript.Append(parentString);
@@ -192,12 +166,91 @@ bpy.context.scene.objects.link(root)
 			pythonScript.AppendLine("bpy.ops.object.select_all(action='DESELECT')");
 		}
 
+		private void BuildAnimations(H3DAnimation anim, H3DModel model)
+		{
+			pythonScript.AppendLine($"act1 = bpy.data.actions.new('{anim.Name}')");
+			pythonScript.AppendLine($"root.animation_data_create()");
+			pythonScript.AppendLine($"root.animation_data.action = act1");
+
+			foreach (var element in anim.Elements)
+			{
+				var fc = new BLENDFCurve(element.Content);
+
+				if (fc.IsNull || fc.NothingExists()) continue;
+
+				var bone = model.Skeleton.FirstOrDefault(x => x.Name == element.Name);
+				Matrix4x4.Decompose(bone.Transform, out var _, out var lr, out var ll);
+				Matrix4x4.Decompose(bone.GetWorldTransform(model.Skeleton), out var _, out var wr, out var wl);
+
+				H3DBone parentBone = null;
+
+				if (bone.ParentIndex != -1)
+					parentBone = model.Skeleton[bone.ParentIndex];
+
+				var bData = $"pose.bones[\"{element.Name}\"]";
+
+				pythonScript.AppendLine($"flx = act1.fcurves.new(data_path='{bData}.location', index=0)");
+				pythonScript.AppendLine($"fly = act1.fcurves.new(data_path='{bData}.location', index=1)");
+				pythonScript.AppendLine($"flz = act1.fcurves.new(data_path='{bData}.location', index=2)");
+
+				if (fc.IsQuaternion)
+				{
+					pythonScript.AppendLine($"root.pose.bones['{element.Name}'].rotation_mode = 'QUATERNION'");
+					pythonScript.AppendLine($"frw = act1.fcurves.new(data_path='{bData}.rotation_quaternion', index=0)");
+					pythonScript.AppendLine($"frx = act1.fcurves.new(data_path='{bData}.rotation_quaternion', index=1)");
+					pythonScript.AppendLine($"fry = act1.fcurves.new(data_path='{bData}.rotation_quaternion', index=2)");
+					pythonScript.AppendLine($"frz = act1.fcurves.new(data_path='{bData}.rotation_quaternion', index=3)");
+				}
+				else
+				{
+					pythonScript.AppendLine($"root.pose.bones['{element.Name}'].rotation_mode = 'XYZ'");
+					pythonScript.AppendLine($"frx = act1.fcurves.new(data_path='{bData}.rotation_euler', index=0)");
+					pythonScript.AppendLine($"fry = act1.fcurves.new(data_path='{bData}.rotation_euler', index=1)");
+					pythonScript.AppendLine($"frz = act1.fcurves.new(data_path='{bData}.rotation_euler', index=2)");
+				}
+
+				pythonScript.AppendLine($"fsx = act1.fcurves.new(data_path='{bData}.scale', index=0)");
+				pythonScript.AppendLine($"fsy = act1.fcurves.new(data_path='{bData}.scale', index=1)");
+				pythonScript.AppendLine($"fsz = act1.fcurves.new(data_path='{bData}.scale', index=2)");
+
+				for (int frame = 0; frame <= anim.FramesCount; ++frame)
+				{
+					var l = (fc.GetLocationAtFrame(frame) - ll) * SCALE;
+					pythonScript.AppendLine($"flx.keyframe_points.insert({frame + 1}, {l.X})");
+					pythonScript.AppendLine($"fly.keyframe_points.insert({frame + 1}, {-l.Y})");
+					pythonScript.AppendLine($"flz.keyframe_points.insert({frame + 1}, {l.Z})");
+
+					var r = fc.GetRotationAtFrame(frame);
+
+					if (r is Vector3 rv)
+					{
+						pythonScript.AppendLine($"frx.keyframe_points.insert({frame + 1}, {rv.X})");
+						pythonScript.AppendLine($"fry.keyframe_points.insert({frame + 1}, {rv.Y})");
+						pythonScript.AppendLine($"frz.keyframe_points.insert({frame + 1}, {rv.Z})");
+					}
+					else if (r is Quaternion rq)
+					{
+						rq *= Quaternion.Inverse(lr);
+						//pythonScript.AppendLine($"frw.keyframe_points.insert({frame + 1}, {rq.W})");
+						//pythonScript.AppendLine($"frx.keyframe_points.insert({frame + 1}, {rq.X})");
+						//pythonScript.AppendLine($"fry.keyframe_points.insert({frame + 1}, {rq.Y})");
+						//pythonScript.AppendLine($"frz.keyframe_points.insert({frame + 1}, {rq.Z})");
+					}
+
+					var s = fc.GetScaleAtFrame(frame);
+					pythonScript.AppendLine($"fsx.keyframe_points.insert({frame + 1}, {s.X})");
+					pythonScript.AppendLine($"fsy.keyframe_points.insert({frame + 1}, {s.Y})");
+					pythonScript.AppendLine($"fsz.keyframe_points.insert({frame + 1}, {s.Z})");
+				}
+			}
+		}
+
 		private void BuildModel(H3DModel model)
 		{
 			pythonScript.AppendLine($"m = bpy.data.meshes.new('{model.Name}')");
 			pythonScript.AppendLine($"o = bpy.data.objects.new('{model.Name}', m)");
 			pythonScript.AppendLine($"o.parent = root");
-			pythonScript.AppendLine($"bpy.context.scene.objects.link(o)");
+			pythonScript.AppendLine($"bpy.context.scene.collection.objects.link(o)");
 			pythonScript.AppendLine($"bm = bmesh.new()");
 			pythonScript.AppendLine($"uvl = bm.loops.layers.uv.new()");
 
@@ -355,15 +408,14 @@ bpy.context.scene.objects.link(root)
 
 			pythonScript.AppendLine($"bm.to_mesh(m)");
 			pythonScript.AppendLine($"bm.free()");
-			pythonScript.AppendLine($"bpy.context.scene.objects.active = o");
-			pythonScript.AppendLine($"o.select = True");
+			pythonScript.AppendLine($"bpy.context.view_layer.objects.active = o");
 			pythonScript.AppendLine($"bpy.ops.object.editmode_toggle()");
 			pythonScript.AppendLine($"bpy.ops.object.editmode_toggle()");
 			pythonScript.AppendLine($"bpy.ops.object.select_all(action='DESELECT')");
 
 			for (var gi = 0; gi < groups.Count; ++gi)
 			{
-				pythonScript.AppendLine($"vg = o.vertex_groups.new('{groups[gi].name}')");
+				pythonScript.AppendLine($"vg = o.vertex_groups.new(name='{groups[gi].name}')");
 
 				foreach (var vert in vertices.Where(x => x.vertGroup.ContainsKey(gi)))
 				{
