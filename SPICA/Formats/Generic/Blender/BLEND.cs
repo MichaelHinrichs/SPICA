@@ -148,17 +148,15 @@ namespace SPICA.Formats.Generic.Blender
 				var t = bone.GetWorldTransform(model.Skeleton) * MTX_ANGLE * MTX_SCALE;
 
 				var head = t.Translation;
+				var tail = head + Vector3.UnitZ;
 
 				if (bone.ParentIndex != -1)
 					parentString.AppendLine($"b{bi}.parent = b{bone.ParentIndex}");
 
 				pythonScript.AppendLine($"b{bi} = root.data.edit_bones.new('{bone.Name}')");
 				pythonScript.AppendLine($"b{bi}.head = [{head.X},{head.Y},{head.Z}]");
-				pythonScript.AppendLine($"b{bi}.tail = [{head.X},{head.Y},{head.Z + 0.5f}]");
-
-				pythonScript.AppendLine($"b{bi}.use_local_location = True");
-				pythonScript.AppendLine($"b{bi}.use_inherit_rotation = True");
-				pythonScript.AppendLine($"b{bi}.use_inherit_scale = True");
+				pythonScript.AppendLine($"b{bi}.tail = [{tail.X},{tail.Y},{tail.Z}]");
+				//pythonScript.AppendLine($"b{bi}.roll = {roll}");
 			}
 
 			pythonScript.Append(parentString);
@@ -215,26 +213,26 @@ namespace SPICA.Formats.Generic.Blender
 
 				for (int frame = 0; frame <= anim.FramesCount; ++frame)
 				{
-					var l = (fc.GetLocationAtFrame(frame) - ll) * SCALE;
-					pythonScript.AppendLine($"flx.keyframe_points.insert({frame + 1}, {l.X})");
+					var l = (ll - fc.GetLocationAtFrame(frame)) * SCALE;
+					pythonScript.AppendLine($"flx.keyframe_points.insert({frame + 1}, {l.Z})");
 					pythonScript.AppendLine($"fly.keyframe_points.insert({frame + 1}, {-l.Y})");
-					pythonScript.AppendLine($"flz.keyframe_points.insert({frame + 1}, {l.Z})");
+					pythonScript.AppendLine($"flz.keyframe_points.insert({frame + 1}, {-l.X})");
 
 					var r = fc.GetRotationAtFrame(frame);
 
 					if (r is Vector3 rv)
 					{
-						pythonScript.AppendLine($"frx.keyframe_points.insert({frame + 1}, {rv.X})");
-						pythonScript.AppendLine($"fry.keyframe_points.insert({frame + 1}, {rv.Y})");
-						pythonScript.AppendLine($"frz.keyframe_points.insert({frame + 1}, {rv.Z})");
+						pythonScript.AppendLine($"frx.keyframe_points.insert({frame + 1}, {rv.Z})");
+						pythonScript.AppendLine($"fry.keyframe_points.insert({frame + 1}, {-rv.Y})");
+						pythonScript.AppendLine($"frz.keyframe_points.insert({frame + 1}, {-rv.X})");
 					}
 					else if (r is Quaternion rq)
 					{
-						rq *= Quaternion.Inverse(lr);
-						//pythonScript.AppendLine($"frw.keyframe_points.insert({frame + 1}, {rq.W})");
-						//pythonScript.AppendLine($"frx.keyframe_points.insert({frame + 1}, {rq.X})");
-						//pythonScript.AppendLine($"fry.keyframe_points.insert({frame + 1}, {rq.Y})");
-						//pythonScript.AppendLine($"frz.keyframe_points.insert({frame + 1}, {rq.Z})");
+						rq = Quaternion.Multiply(lr, Quaternion.Inverse(rq));
+						pythonScript.AppendLine($"frw.keyframe_points.insert({frame + 1}, {rq.W})");
+						pythonScript.AppendLine($"frx.keyframe_points.insert({frame + 1}, {rq.Z})");
+						pythonScript.AppendLine($"fry.keyframe_points.insert({frame + 1}, {-rq.Y})");
+						pythonScript.AppendLine($"frz.keyframe_points.insert({frame + 1}, {-rq.X})");
 					}
 
 					var s = fc.GetScaleAtFrame(frame);
