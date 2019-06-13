@@ -29,5 +29,10 @@ namespace SPICA.WinForms {
 			this.DialogResult = DialogResult.OK;
 			this.Close();
 		}
-	}
+
+        private void FormatCombo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+    }
 }

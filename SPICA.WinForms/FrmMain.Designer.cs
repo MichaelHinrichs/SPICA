@@ -69,6 +69,8 @@
             this.TextureInfo = new System.Windows.Forms.Label();
             this.TabPageCameras = new System.Windows.Forms.TabPage();
             this.CamerasList = new SPICA.WinForms.GUI.SUIList();
+            this.TabPageLights = new System.Windows.Forms.TabPage();
+            this.LightsList = new SPICA.WinForms.GUI.SUIList();
             this.TabPageSklAnims = new System.Windows.Forms.TabPage();
             this.SklAnimsList = new SPICA.WinForms.GUI.SUIList();
             this.TabPageMatAnims = new System.Windows.Forms.TabPage();
@@ -90,8 +92,6 @@
             this.TBtnShowInfo = new System.Windows.Forms.ToolStripButton();
             this.TBtnShowSide = new System.Windows.Forms.ToolStripButton();
             this.TopIcons = new System.Windows.Forms.ToolStrip();
-            this.TabPageLights = new System.Windows.Forms.TabPage();
-            this.LightsList = new SPICA.WinForms.GUI.SUIList();
             this.TopMenu.SuspendLayout();
             this.AnimControlsPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainContainer)).BeginInit();
@@ -102,26 +102,27 @@
             this.TabPageTextures.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TexturePreview)).BeginInit();
             this.TabPageCameras.SuspendLayout();
+            this.TabPageLights.SuspendLayout();
             this.TabPageSklAnims.SuspendLayout();
             this.TabPageMatAnims.SuspendLayout();
             this.TabPageVisAnims.SuspendLayout();
             this.TabPageCamAnims.SuspendLayout();
             this.SideIcons.SuspendLayout();
             this.TopIcons.SuspendLayout();
-            this.TabPageLights.SuspendLayout();
             this.SuspendLayout();
             // 
             // TopMenu
             // 
             this.TopMenu.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(73)))), ((int)(((byte)(66)))), ((int)(((byte)(61)))));
             this.TopMenu.ForeColor = System.Drawing.Color.White;
+            this.TopMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.TopMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MenuFileRoot,
             this.MenuOptionsRoot,
             this.MenuHelpRoot});
             this.TopMenu.Location = new System.Drawing.Point(0, 0);
             this.TopMenu.Name = "TopMenu";
-            this.TopMenu.Size = new System.Drawing.Size(944, 24);
+            this.TopMenu.Size = new System.Drawing.Size(944, 28);
             this.TopMenu.TabIndex = 1;
             // 
             // MenuFileRoot
@@ -131,14 +132,14 @@
             this.MenuMergeFiles,
             this.MenuBatchExport});
             this.MenuFileRoot.Name = "MenuFileRoot";
-            this.MenuFileRoot.Size = new System.Drawing.Size(37, 20);
+            this.MenuFileRoot.Size = new System.Drawing.Size(46, 24);
             this.MenuFileRoot.Text = "&File";
             // 
             // MenuOpenFile
             // 
             this.MenuOpenFile.Name = "MenuOpenFile";
             this.MenuOpenFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.MenuOpenFile.Size = new System.Drawing.Size(162, 22);
+            this.MenuOpenFile.Size = new System.Drawing.Size(199, 26);
             this.MenuOpenFile.Text = "&Open...";
             this.MenuOpenFile.Click += new System.EventHandler(this.MenuOpenFile_Click);
             // 
@@ -146,14 +147,14 @@
             // 
             this.MenuMergeFiles.Name = "MenuMergeFiles";
             this.MenuMergeFiles.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M)));
-            this.MenuMergeFiles.Size = new System.Drawing.Size(162, 22);
+            this.MenuMergeFiles.Size = new System.Drawing.Size(199, 26);
             this.MenuMergeFiles.Text = "&Merge...";
             this.MenuMergeFiles.Click += new System.EventHandler(this.MenuMergeFiles_Click);
             // 
             // MenuBatchExport
             // 
             this.MenuBatchExport.Name = "MenuBatchExport";
-            this.MenuBatchExport.Size = new System.Drawing.Size(162, 22);
+            this.MenuBatchExport.Size = new System.Drawing.Size(199, 26);
             this.MenuBatchExport.Text = "&Batch export...";
             this.MenuBatchExport.Click += new System.EventHandler(this.MenuBatchExport_Click);
             // 
@@ -163,7 +164,7 @@
             this.MenuRenderer,
             this.MenuUserInterface});
             this.MenuOptionsRoot.Name = "MenuOptionsRoot";
-            this.MenuOptionsRoot.Size = new System.Drawing.Size(61, 20);
+            this.MenuOptionsRoot.Size = new System.Drawing.Size(75, 24);
             this.MenuOptionsRoot.Text = "&Options";
             // 
             // MenuRenderer
@@ -175,39 +176,39 @@
             this.MenuShowInfo,
             this.MenuWireframeMode});
             this.MenuRenderer.Name = "MenuRenderer";
-            this.MenuRenderer.Size = new System.Drawing.Size(146, 22);
+            this.MenuRenderer.Size = new System.Drawing.Size(183, 26);
             this.MenuRenderer.Text = "&Renderer";
             // 
             // MenuShowGrid
             // 
             this.MenuShowGrid.Name = "MenuShowGrid";
-            this.MenuShowGrid.Size = new System.Drawing.Size(167, 22);
+            this.MenuShowGrid.Size = new System.Drawing.Size(208, 26);
             this.MenuShowGrid.Text = "Show &grid";
             this.MenuShowGrid.Click += new System.EventHandler(this.MenuShowGrid_Click);
             // 
             // MenuShowAxis
             // 
             this.MenuShowAxis.Name = "MenuShowAxis";
-            this.MenuShowAxis.Size = new System.Drawing.Size(167, 22);
+            this.MenuShowAxis.Size = new System.Drawing.Size(208, 26);
             this.MenuShowAxis.Text = "Show &axis";
             this.MenuShowAxis.Click += new System.EventHandler(this.MenuShowAxis_Click);
             // 
             // MenuShowSkeleton
             // 
             this.MenuShowSkeleton.Name = "MenuShowSkeleton";
-            this.MenuShowSkeleton.Size = new System.Drawing.Size(167, 22);
+            this.MenuShowSkeleton.Size = new System.Drawing.Size(208, 26);
             this.MenuShowSkeleton.Text = "Show &skeleton";
             // 
             // MenuShowInfo
             // 
             this.MenuShowInfo.Name = "MenuShowInfo";
-            this.MenuShowInfo.Size = new System.Drawing.Size(167, 22);
+            this.MenuShowInfo.Size = new System.Drawing.Size(208, 26);
             this.MenuShowInfo.Text = "Show &model info.";
             // 
             // MenuWireframeMode
             // 
             this.MenuWireframeMode.Name = "MenuWireframeMode";
-            this.MenuWireframeMode.Size = new System.Drawing.Size(167, 22);
+            this.MenuWireframeMode.Size = new System.Drawing.Size(208, 26);
             this.MenuWireframeMode.Text = "&Wireframe mode";
             // 
             // MenuUserInterface
@@ -215,20 +216,20 @@
             this.MenuUserInterface.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MenuShowSide});
             this.MenuUserInterface.Name = "MenuUserInterface";
-            this.MenuUserInterface.Size = new System.Drawing.Size(146, 22);
+            this.MenuUserInterface.Size = new System.Drawing.Size(183, 26);
             this.MenuUserInterface.Text = "&User interface";
             // 
             // MenuShowSide
             // 
             this.MenuShowSide.Name = "MenuShowSide";
-            this.MenuShowSide.Size = new System.Drawing.Size(161, 22);
+            this.MenuShowSide.Size = new System.Drawing.Size(200, 26);
             this.MenuShowSide.Text = "Show &side menu";
             this.MenuShowSide.Click += new System.EventHandler(this.MenuShowSide_Click);
             // 
             // MenuHelpRoot
             // 
             this.MenuHelpRoot.Name = "MenuHelpRoot";
-            this.MenuHelpRoot.Size = new System.Drawing.Size(44, 20);
+            this.MenuHelpRoot.Size = new System.Drawing.Size(55, 24);
             this.MenuHelpRoot.Text = "&Help";
             // 
             // AnimControlsPanel
@@ -387,14 +388,14 @@
             // MainContainer
             // 
             this.MainContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MainContainer.Location = new System.Drawing.Point(0, 54);
+            this.MainContainer.Location = new System.Drawing.Point(0, 58);
             this.MainContainer.Name = "MainContainer";
             // 
             // MainContainer.Panel2
             // 
             this.MainContainer.Panel2.Controls.Add(this.SideTabs);
             this.MainContainer.Panel2.Controls.Add(this.SideIcons);
-            this.MainContainer.Size = new System.Drawing.Size(944, 477);
+            this.MainContainer.Size = new System.Drawing.Size(944, 473);
             this.MainContainer.SplitterDistance = 698;
             this.MainContainer.TabIndex = 0;
             // 
@@ -420,7 +421,7 @@
             this.SideTabs.SelectedForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(188)))), ((int)(((byte)(183)))), ((int)(((byte)(123)))));
             this.SideTabs.SelectedIndex = 0;
             this.SideTabs.ShowToolTips = true;
-            this.SideTabs.Size = new System.Drawing.Size(242, 446);
+            this.SideTabs.Size = new System.Drawing.Size(242, 442);
             this.SideTabs.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
             this.SideTabs.TabIndex = 0;
             // 
@@ -432,7 +433,7 @@
             this.TabPageModels.Location = new System.Drawing.Point(4, 28);
             this.TabPageModels.Name = "TabPageModels";
             this.TabPageModels.Padding = new System.Windows.Forms.Padding(3);
-            this.TabPageModels.Size = new System.Drawing.Size(234, 414);
+            this.TabPageModels.Size = new System.Drawing.Size(234, 410);
             this.TabPageModels.TabIndex = 0;
             this.TabPageModels.ToolTipText = "Models";
             // 
@@ -450,7 +451,7 @@
             this.ModelsList.Name = "ModelsList";
             this.ModelsList.SelectedIndex = -1;
             this.ModelsList.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(134)))), ((int)(((byte)(106)))));
-            this.ModelsList.Size = new System.Drawing.Size(228, 408);
+            this.ModelsList.Size = new System.Drawing.Size(228, 404);
             this.ModelsList.TabIndex = 0;
             this.ModelsList.SelectedIndexChanged += new System.EventHandler(this.ModelsList_SelectedIndexChanged);
             // 
@@ -533,6 +534,36 @@
             this.CamerasList.TabIndex = 0;
             this.CamerasList.Selected += new System.EventHandler(this.CamerasList_Selected);
             // 
+            // TabPageLights
+            // 
+            this.TabPageLights.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(58)))), ((int)(((byte)(53)))), ((int)(((byte)(48)))));
+            this.TabPageLights.Controls.Add(this.LightsList);
+            this.TabPageLights.ImageIndex = 3;
+            this.TabPageLights.Location = new System.Drawing.Point(4, 28);
+            this.TabPageLights.Name = "TabPageLights";
+            this.TabPageLights.Padding = new System.Windows.Forms.Padding(3);
+            this.TabPageLights.Size = new System.Drawing.Size(234, 414);
+            this.TabPageLights.TabIndex = 7;
+            this.TabPageLights.ToolTipText = "Lights";
+            // 
+            // LightsList
+            // 
+            this.LightsList.BackColor = System.Drawing.Color.Transparent;
+            this.LightsList.BarColor = System.Drawing.Color.White;
+            this.LightsList.BarColorHover = System.Drawing.Color.FromArgb(((int)(((byte)(188)))), ((int)(((byte)(183)))), ((int)(((byte)(123)))));
+            this.LightsList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.LightsList.ForeColor = System.Drawing.Color.White;
+            this.LightsList.ItemHeight = 16;
+            this.LightsList.Location = new System.Drawing.Point(3, 3);
+            this.LightsList.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
+            this.LightsList.MultiSelect = true;
+            this.LightsList.Name = "LightsList";
+            this.LightsList.SelectedIndex = -1;
+            this.LightsList.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(134)))), ((int)(((byte)(106)))));
+            this.LightsList.Size = new System.Drawing.Size(228, 408);
+            this.LightsList.TabIndex = 1;
+            this.LightsList.Selected += new System.EventHandler(this.LightsList_Selected);
+            // 
             // TabPageSklAnims
             // 
             this.TabPageSklAnims.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(58)))), ((int)(((byte)(53)))), ((int)(((byte)(48)))));
@@ -541,7 +572,7 @@
             this.TabPageSklAnims.Location = new System.Drawing.Point(4, 28);
             this.TabPageSklAnims.Name = "TabPageSklAnims";
             this.TabPageSklAnims.Padding = new System.Windows.Forms.Padding(3);
-            this.TabPageSklAnims.Size = new System.Drawing.Size(234, 414);
+            this.TabPageSklAnims.Size = new System.Drawing.Size(234, 410);
             this.TabPageSklAnims.TabIndex = 2;
             this.TabPageSklAnims.ToolTipText = "Skeletal animations";
             // 
@@ -559,7 +590,7 @@
             this.SklAnimsList.Name = "SklAnimsList";
             this.SklAnimsList.SelectedIndex = -1;
             this.SklAnimsList.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(134)))), ((int)(((byte)(106)))));
-            this.SklAnimsList.Size = new System.Drawing.Size(228, 408);
+            this.SklAnimsList.Size = new System.Drawing.Size(228, 404);
             this.SklAnimsList.TabIndex = 3;
             this.SklAnimsList.Selected += new System.EventHandler(this.SklAnimsList_Selected);
             // 
@@ -654,6 +685,7 @@
             // SideIcons
             // 
             this.SideIcons.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(73)))), ((int)(((byte)(66)))), ((int)(((byte)(61)))));
+            this.SideIcons.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.SideIcons.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ToolButtonExport,
             this.ToolButtonImport});
@@ -669,7 +701,7 @@
             this.ToolButtonExport.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.ToolButtonExport.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.ToolButtonExport.Name = "ToolButtonExport";
-            this.ToolButtonExport.Size = new System.Drawing.Size(28, 28);
+            this.ToolButtonExport.Size = new System.Drawing.Size(29, 28);
             this.ToolButtonExport.ToolTipText = "Export...";
             this.ToolButtonExport.Click += new System.EventHandler(this.ToolButtonExport_Click);
             // 
@@ -680,8 +712,9 @@
             this.ToolButtonImport.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.ToolButtonImport.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.ToolButtonImport.Name = "ToolButtonImport";
-            this.ToolButtonImport.Size = new System.Drawing.Size(28, 28);
+            this.ToolButtonImport.Size = new System.Drawing.Size(29, 28);
             this.ToolButtonImport.ToolTipText = "Import...";
+            this.ToolButtonImport.Click += new System.EventHandler(this.ToolButtonImport_Click);
             // 
             // TBtnOpen
             // 
@@ -690,7 +723,7 @@
             this.TBtnOpen.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnOpen.Name = "TBtnOpen";
-            this.TBtnOpen.Size = new System.Drawing.Size(28, 27);
+            this.TBtnOpen.Size = new System.Drawing.Size(29, 27);
             this.TBtnOpen.ToolTipText = "Open...";
             this.TBtnOpen.Click += new System.EventHandler(this.TBtnOpen_Click);
             // 
@@ -701,7 +734,7 @@
             this.TBtnMerge.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnMerge.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnMerge.Name = "TBtnMerge";
-            this.TBtnMerge.Size = new System.Drawing.Size(28, 27);
+            this.TBtnMerge.Size = new System.Drawing.Size(29, 27);
             this.TBtnMerge.ToolTipText = "Merge...";
             this.TBtnMerge.Click += new System.EventHandler(this.TBtnMerge_Click);
             // 
@@ -712,7 +745,7 @@
             this.TBtnSave.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnSave.Name = "TBtnSave";
-            this.TBtnSave.Size = new System.Drawing.Size(28, 27);
+            this.TBtnSave.Size = new System.Drawing.Size(29, 27);
             this.TBtnSave.ToolTipText = "Save...";
             this.TBtnSave.Click += new System.EventHandler(this.TBtnSave_Click);
             // 
@@ -729,7 +762,7 @@
             this.TBtnShowGrid.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnShowGrid.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnShowGrid.Name = "TBtnShowGrid";
-            this.TBtnShowGrid.Size = new System.Drawing.Size(28, 27);
+            this.TBtnShowGrid.Size = new System.Drawing.Size(29, 27);
             this.TBtnShowGrid.ToolTipText = "Toggle grid";
             this.TBtnShowGrid.Click += new System.EventHandler(this.TBtnShowGrid_Click);
             // 
@@ -741,7 +774,7 @@
             this.TBtnShowAxis.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnShowAxis.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnShowAxis.Name = "TBtnShowAxis";
-            this.TBtnShowAxis.Size = new System.Drawing.Size(28, 27);
+            this.TBtnShowAxis.Size = new System.Drawing.Size(29, 27);
             this.TBtnShowAxis.ToolTipText = "Toggle axis";
             this.TBtnShowAxis.Click += new System.EventHandler(this.TBtnShowAxis_Click);
             // 
@@ -753,7 +786,7 @@
             this.TBtnShowBones.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnShowBones.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnShowBones.Name = "TBtnShowBones";
-            this.TBtnShowBones.Size = new System.Drawing.Size(28, 27);
+            this.TBtnShowBones.Size = new System.Drawing.Size(29, 27);
             this.TBtnShowBones.ToolTipText = "Toggle skeleton";
             // 
             // TBtnShowInfo
@@ -764,7 +797,7 @@
             this.TBtnShowInfo.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnShowInfo.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnShowInfo.Name = "TBtnShowInfo";
-            this.TBtnShowInfo.Size = new System.Drawing.Size(28, 27);
+            this.TBtnShowInfo.Size = new System.Drawing.Size(29, 27);
             this.TBtnShowInfo.ToolTipText = "Toggle model info.";
             // 
             // TBtnShowSide
@@ -776,7 +809,7 @@
             this.TBtnShowSide.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.TBtnShowSide.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.TBtnShowSide.Name = "TBtnShowSide";
-            this.TBtnShowSide.Size = new System.Drawing.Size(28, 27);
+            this.TBtnShowSide.Size = new System.Drawing.Size(29, 27);
             this.TBtnShowSide.ToolTipText = "Toggle side menu";
             this.TBtnShowSide.Click += new System.EventHandler(this.TBtnShowSide_Click);
             // 
@@ -785,6 +818,7 @@
             this.TopIcons.AutoSize = false;
             this.TopIcons.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(73)))), ((int)(((byte)(66)))), ((int)(((byte)(61)))));
             this.TopIcons.ForeColor = System.Drawing.Color.White;
+            this.TopIcons.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.TopIcons.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TBtnOpen,
             this.TBtnMerge,
@@ -795,45 +829,15 @@
             this.TBtnShowBones,
             this.TBtnShowInfo,
             this.TBtnShowSide});
-            this.TopIcons.Location = new System.Drawing.Point(0, 24);
+            this.TopIcons.Location = new System.Drawing.Point(0, 28);
             this.TopIcons.Name = "TopIcons";
             this.TopIcons.Size = new System.Drawing.Size(944, 30);
             this.TopIcons.TabIndex = 3;
             // 
-            // TabPageLights
-            // 
-            this.TabPageLights.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(58)))), ((int)(((byte)(53)))), ((int)(((byte)(48)))));
-            this.TabPageLights.Controls.Add(this.LightsList);
-            this.TabPageLights.ImageIndex = 3;
-            this.TabPageLights.Location = new System.Drawing.Point(4, 28);
-            this.TabPageLights.Name = "TabPageLights";
-            this.TabPageLights.Padding = new System.Windows.Forms.Padding(3);
-            this.TabPageLights.Size = new System.Drawing.Size(234, 414);
-            this.TabPageLights.TabIndex = 7;
-            this.TabPageLights.ToolTipText = "Lights";
-            // 
-            // LightsList
-            // 
-            this.LightsList.BackColor = System.Drawing.Color.Transparent;
-            this.LightsList.BarColor = System.Drawing.Color.White;
-            this.LightsList.BarColorHover = System.Drawing.Color.FromArgb(((int)(((byte)(188)))), ((int)(((byte)(183)))), ((int)(((byte)(123)))));
-            this.LightsList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.LightsList.ForeColor = System.Drawing.Color.White;
-            this.LightsList.ItemHeight = 16;
-            this.LightsList.Location = new System.Drawing.Point(3, 3);
-            this.LightsList.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
-            this.LightsList.MultiSelect = true;
-            this.LightsList.Name = "LightsList";
-            this.LightsList.SelectedIndex = -1;
-            this.LightsList.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(134)))), ((int)(((byte)(106)))));
-            this.LightsList.Size = new System.Drawing.Size(228, 408);
-            this.LightsList.TabIndex = 1;
-            this.LightsList.Selected += new System.EventHandler(this.LightsList_Selected);
-            // 
             // FrmMain
             // 
             this.AllowDrop = true;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(73)))), ((int)(((byte)(66)))), ((int)(((byte)(61)))));
             this.ClientSize = new System.Drawing.Size(944, 561);
@@ -861,6 +865,7 @@
             this.TabPageTextures.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.TexturePreview)).EndInit();
             this.TabPageCameras.ResumeLayout(false);
+            this.TabPageLights.ResumeLayout(false);
             this.TabPageSklAnims.ResumeLayout(false);
             this.TabPageMatAnims.ResumeLayout(false);
             this.TabPageVisAnims.ResumeLayout(false);
@@ -869,7 +874,6 @@
             this.SideIcons.PerformLayout();
             this.TopIcons.ResumeLayout(false);
             this.TopIcons.PerformLayout();
-            this.TabPageLights.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
