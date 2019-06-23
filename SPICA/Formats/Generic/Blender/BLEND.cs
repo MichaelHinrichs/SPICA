@@ -213,7 +213,7 @@ namespace SPICA.Formats.Generic.Blender
 
 				for (int frame = 0; frame <= anim.FramesCount; ++frame)
 				{
-					var l = (ll - fc.GetLocationAtFrame(frame)) * SCALE;
+					var l = (ll - Vector3.Transform(fc.GetLocationAtFrame(frame), lr)) * SCALE;
 					pythonScript.AppendLine($"flx.keyframe_points.insert({frame + 1}, {l.Z})");
 					pythonScript.AppendLine($"fly.keyframe_points.insert({frame + 1}, {-l.Y})");
 					pythonScript.AppendLine($"flz.keyframe_points.insert({frame + 1}, {-l.X})");

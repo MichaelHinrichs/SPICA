@@ -1,6 +1,4 @@
 ﻿using SPICA.Formats.CtrH3D.Animation;
-using SPICA.Math3D;
-using System;
 using System.Numerics;
 
 namespace SPICA.Formats.Generic.Blender
