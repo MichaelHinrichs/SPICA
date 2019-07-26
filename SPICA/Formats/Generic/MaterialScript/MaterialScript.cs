@@ -91,7 +91,9 @@ namespace SPICA.Formats.Generic.MaterialScript
                 PICATexEnvStage stage;
 
                 //Initialize script Stringbuilder
-                script = new StringBuilder("vtxColor = VertexColor()\n\n");
+                script = new StringBuilder("vtxColor = VertexColor()\n");
+                script.Append("scriptPath = getThisScriptFilename()\nscriptPath = getFilenamePath scriptPath\n\n");
+                //TODO: add script path get, append it to texture files
 
                 foreach (H3DMaterial Mtl in Mdl.Materials)
                 {
@@ -177,6 +179,14 @@ namespace SPICA.Formats.Generic.MaterialScript
                     //only create/assign alpha if it's used
                     if (!Mtl.MaterialParams.AlphaTest.Enabled && Mtl.MaterialParams.BlendFunction.ColorDstFunc == PICABlendFunc.Zero && Mtl.MaterialParams.BlendFunction.AlphaDstFunc == PICABlendFunc.Zero)
                     {
+                        //Alpha source of "DestinationColor" is a special exception
+                        if(Mtl.MaterialParams.BlendFunction.AlphaSrcFunc == PICABlendFunc.DestinationColor)//if alpha src = DestinationColor, use vtx alpha
+                        {
+                            script.Append("vtxAlpha = VertexColor()\n"
+                                + $"vtxAlpha.map = {maxMapChannel + 1}\n"
+                                + "vtxAlpha.subid = 1\n");
+                            script.Append($"{Mtl.Name}_mat.opacityMap = vtxAlpha\n");
+                        }
                         script.Append("\n\n");
                         continue;   //skip to next material
                     }
@@ -275,9 +285,9 @@ namespace SPICA.Formats.Generic.MaterialScript
 
             switch(idx) //Select the texture from the material
             {
-                case 1:  txtString.AppendLine($"txt{idx}.filename = \"./{mat.Texture1Name}.png\""); break;
-                case 2:  txtString.AppendLine($"txt{idx}.filename = \"./{mat.Texture2Name}.png\""); break;
-                default: txtString.AppendLine($"txt{idx}.filename = \"./{mat.Texture0Name}.png\""); break;
+                case 1:  txtString.AppendLine($"txt{idx}.filename = scriptPath + \"/{mat.Texture1Name}.png\""); break;
+                case 2:  txtString.AppendLine($"txt{idx}.filename = scriptPath + \"/{mat.Texture2Name}.png\""); break;
+                default: txtString.AppendLine($"txt{idx}.filename = scriptPath + \"/{mat.Texture0Name}.png\""); break;
             }
 
             txtString.AppendLine($"txt{idx}.name = \"{mat.Name}_txt{idx}\""); //set map name

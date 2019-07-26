@@ -53,10 +53,23 @@ namespace SPICA.Formats.Generic.MaterialScript
                     if (Mtl.Texture2Name != null && Mtl.Texture2Name.Length > 0) WriteTextureString(Mtl, 2);
                     //text.Append('\n');
 
-                    //TODO: write Alpha test properties
+                    //write Alpha test properties
+                    text.AppendLine("  Alphat Test");
+                    text.AppendLine($"    Enabled: {Mtl.MaterialParams.AlphaTest.Enabled}");
+                    text.AppendLine($"    Function: {Mtl.MaterialParams.AlphaTest.Function}");
+                    text.AppendLine($"    Reference Value: {Mtl.MaterialParams.AlphaTest.Reference}\n");
 
-                    //TOD: write blend function properties
+                    //Write blend function properties
+                    text.AppendLine("  Blending");
+                    text.AppendLine($"    Blend Color: {Mtl.MaterialParams.BlendColor}");
+                    text.AppendLine($"    Blend Color Dst Function: {Mtl.MaterialParams.BlendFunction.ColorDstFunc}");
+                    text.AppendLine($"    Blend Color Src Function: {Mtl.MaterialParams.BlendFunction.ColorSrcFunc}");
+                    text.AppendLine($"    Blend Color Equation: {Mtl.MaterialParams.BlendFunction.ColorEquation}");
+                    text.AppendLine($"    Blend Alpha Dst Function: {Mtl.MaterialParams.BlendFunction.AlphaDstFunc}");
+                    text.AppendLine($"    Blend Alpha Src Function: {Mtl.MaterialParams.BlendFunction.AlphaSrcFunc}");
+                    text.AppendLine($"    Blend Alpha Equation: {Mtl.MaterialParams.BlendFunction.AlphaEquation}\n");
 
+                    //Write Texture stages (layers)
                     text.AppendLine($"  TexEnv Stages:");
                     foreach (PICATexEnvStage stage in Mtl.MaterialParams.TexEnvStages)
                     {

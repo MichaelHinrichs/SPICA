@@ -142,8 +142,6 @@ namespace SPICA.WinForms
                     continue;
                 }
 
-                Console.WriteLine("Processing "+ File.FullName);
-
                 subPath = GetRelativePath(File.DirectoryName, TxtInputFolder.Text);
 
                 if (subPath.Length > 0 && !Directory.Exists(outPath + subPath))
