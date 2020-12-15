@@ -828,7 +828,7 @@ namespace SPICA.WinForms
             {
                 if (TexturesList.SelectedIndex != -1)
                 {
-                    IgnoreClicks = true;
+                    IgnoreClicks = false;
                     using (OpenFileDialog OpenDlg = new OpenFileDialog())
                     {
                         OpenDlg.Filter = "Portable Network Graphics|*.png";
@@ -847,7 +847,7 @@ namespace SPICA.WinForms
                     }
                     Application.DoEvents();
 
-                    IgnoreClicks = false;
+                    IgnoreClicks = true;
                 }
             }
         }
