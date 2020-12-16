@@ -27,6 +27,7 @@ See `README.mono.md` for details.
 - Small CtrH3D.Model bugfix with huge consequences, such as full support for Pokémon OR/AS overworld map models.
 - Hugely expanded OBJ importer with support for alpha blending, render layers, vertex colors (using an extra "vc" OBJ command outside of the common specifications) and safe material assignment.
 - Full support of the Common Interchange Format, allowing to convert CTRMap Creative Studio's scene files to H3D.
+- Fixes GFMDL (gfmodel) export
 
 # Non-features of this fork
 
