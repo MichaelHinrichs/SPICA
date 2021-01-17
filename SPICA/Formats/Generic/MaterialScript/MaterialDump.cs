@@ -29,11 +29,17 @@ namespace SPICA.Formats.Generic.MaterialScript
             {
                 H3DModel Mdl = Scene.Models[MdlIndex];
 
-                if (Mdl.Materials.Count < 1) return; //if model has no materials, abort
-
                 //Initialize text Stringbuilder
                 text = new StringBuilder($"Material data for {Mdl.Name}\n\n");
 
+                //if model has no materials, abort
+                if (Mdl.Materials.Count < 1)
+                {
+                    text.AppendLine("None");
+                    return;
+                }
+
+                //Write details for each material
                 foreach (H3DMaterial Mtl in Mdl.Materials)
                 {
                     text.AppendLine(Mtl.Name);
@@ -43,9 +49,10 @@ namespace SPICA.Formats.Generic.MaterialScript
                     text.AppendLine($"  Diffuse Color: {Mtl.MaterialParams.DiffuseColor}");
                     text.AppendLine($"  Specular 0 Color: {Mtl.MaterialParams.Specular0Color}");
                     text.AppendLine($"  Specular 1 Color: {Mtl.MaterialParams.Specular1Color}");
-                    text.AppendLine($"  Blend Color: {Mtl.MaterialParams.BlendColor}");
                     text.AppendLine($"  Emission Color: {Mtl.MaterialParams.EmissionColor}");
                     text.Append('\n');
+
+                    //TODO: write constants listed directly in Material? (they don't always match those in the stages)
 
                     //Write Texture properties
                     if (Mtl.Texture0Name != null && Mtl.Texture0Name.Length > 0) WriteTextureString(Mtl, 0);
@@ -54,7 +61,7 @@ namespace SPICA.Formats.Generic.MaterialScript
                     //text.Append('\n');
 
                     //write Alpha test properties
-                    text.AppendLine("  Alphat Test");
+                    text.AppendLine("  Alpha Test");
                     text.AppendLine($"    Enabled: {Mtl.MaterialParams.AlphaTest.Enabled}");
                     text.AppendLine($"    Function: {Mtl.MaterialParams.AlphaTest.Function}");
                     text.AppendLine($"    Reference Value: {Mtl.MaterialParams.AlphaTest.Reference}\n");
@@ -111,40 +118,75 @@ namespace SPICA.Formats.Generic.MaterialScript
             text.AppendLine($"    Map Translation: {mat.MaterialParams.TextureCoords[idx].Translation}");
             text.AppendLine($"    Map Rotation: {mat.MaterialParams.TextureCoords[idx].Rotation}");
 
-            //TODO: add support for additional mapping settings
+            //TODO: add support for additional mapping settings?
 
             text.Append('\n');
         }
 
         private void WriteStageString(PICATexEnvStage stage)
         {
-            text.Append("    Color: ");
+            text.Append("    Color = ");
             if (stage.IsColorPassThrough) text.AppendLine("Passthrough");
             else
             {
-                text.Append($"{stage.Combiner.Color}(scale: {stage.Scale.Color})- ");
-                for (int i = 0; i < 3; i++)
-                {
-                    text.Append($"{stage.Source.Color[i]}({stage.Operand.Color[i]}), ");
-                }
+                WriteCombinerString(stage.Combiner.Color, stage.Source.Color, stage.Operand.Color);
+                text.Append($", (scale: {stage.Scale.Color})");
                 text.Append('\n');
             }
 
-            text.Append("    Alpha: ");
+            text.Append("    Alpha = ");
             if (stage.IsAlphaPassThrough) text.AppendLine("Passthrough");
             else
             {
-                text.Append($"{stage.Combiner.Alpha}(scale: {stage.Scale.Alpha})- ");
-                for (int i = 0; i < 3; i++)
-                {
-                    text.Append($"{stage.Source.Alpha[i]}({stage.Operand.Alpha[i]}), ");
-                }
+                WriteCombinerString(stage.Combiner.Alpha, stage.Source.Alpha, stage.Operand.Alpha);
+                text.Append($", (scale: {stage.Scale.Color})");
                 text.Append('\n');
             }
 
             text.AppendLine($"    Update Color Buffer: {stage.UpdateColorBuffer}");
             text.AppendLine($"    Update Alpha Buffer: {stage.UpdateAlphaBuffer}");
             text.AppendLine($"    Constant: {stage.Color}");
+        }
+
+        private void WriteCombinerString<T>(PICATextureCombinerMode mode, PICATextureCombinerSource[] sources, T[] ops)
+        {
+            switch (mode)
+            {
+                case PICATextureCombinerMode.Replace:
+                    text.Append($"{sources[0]}({ops[0]})");
+                    break;
+                case PICATextureCombinerMode.Add:
+                    text.Append($"{sources[0]}({ops[0]}) + {sources[1]}({ops[1]})");
+                    break;
+                case PICATextureCombinerMode.AddSigned:
+                    text.Append($"{sources[0]}({ops[0]}) + {sources[1]}({ops[1]})  (signed)");
+                    break;
+                case PICATextureCombinerMode.Subtract:
+                    text.Append($"{sources[0]}({ops[0]}) - {sources[1]}({ops[1]})");
+                    break;
+                case PICATextureCombinerMode.Modulate:
+                    text.Append($"{sources[0]}({ops[0]}) * {sources[1]}({ops[1]})");
+                    break;
+                case PICATextureCombinerMode.AddMult:
+                    text.Append($"( {sources[0]}({ops[0]}) + {sources[1]}({ops[1]}) ) * {sources[2]}({ops[2]})");
+                    break;
+                case PICATextureCombinerMode.MultAdd:
+                    text.Append($"{sources[0]}({ops[0]}) * {sources[1]}({ops[1]}) + {sources[2]}({ops[2]})");
+                    break;
+
+                //TODO: print details for these
+                case PICATextureCombinerMode.Interpolate:
+                case PICATextureCombinerMode.DotProduct3Rgb:
+                case PICATextureCombinerMode.DotProduct3Rgba:
+                default:
+                    text.Append($"{mode}(");
+                    for (int i = 0; i < 3; i++)
+                    {
+                        text.Append($"{sources[i]}({ops[i]}), ");
+                    }
+                    text.Append(')');
+                    break;
+            }
         }
         #endregion
 

@@ -75,8 +75,40 @@ namespace SPICA.Formats.Generic.COLLADA
 
                     ImgSurface.sid = $"{Mtl.Name}_surf";
                     ImgSurface.surface.type = "2D";
-                    ImgSurface.surface.init_from = Mtl.Texture0Name;
                     ImgSurface.surface.format = "PNG";
+
+                    //Get first UV mapped texture
+                    int i;
+                    for (i=0; i<3; i++)
+                    {
+                        //If texture not enabled, use the previous one
+                        if (!Mtl.EnabledTextures[i])
+                        {
+                            i--;
+                            break;
+                        }
+
+                        //If texture is UV mapped, select it
+                        else if (Mtl.MaterialParams.TextureCoords[i].MappingType == H3DTextureMappingType.UvCoordinateMap)
+                            break;
+                    }
+
+                    //Get selected texture name
+                    switch (i)
+                    {
+                        case 0:
+                            ImgSurface.surface.init_from = Mtl.Texture0Name;
+                            break;
+                        case 1:
+                            ImgSurface.surface.init_from = Mtl.Texture1Name;
+                            break;
+                        case 2:
+                            ImgSurface.surface.init_from = Mtl.Texture2Name;
+                            break;
+                        default:
+                            ImgSurface.surface.init_from = "Unknown";
+                            break;
+                    }
 
                     ImgSampler.sid = $"{Mtl.Name}_samp";
                     ImgSampler.sampler2D.source = ImgSurface.sid;

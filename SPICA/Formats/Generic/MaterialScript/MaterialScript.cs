@@ -16,6 +16,7 @@ using System.Numerics;
 
 
 //TODO: add projection mapping compatibility
+//TODO: Fix model alpha not drawing from Vtx Color alpha (notable on town water meshes)
 
 namespace SPICA.Formats.Generic.MaterialScript
 {
@@ -78,7 +79,7 @@ namespace SPICA.Formats.Generic.MaterialScript
 
         //public MaterialScript() { }
 
-        public MaterialScript(H3D Scene, int MdlIndex, int AnimIndex = -1)  //TODO: Needs more object-oriented-ness
+        public MaterialScript(H3D Scene, int MdlIndex, int AnimIndex = -1)  //TODO: Needs more object-oriented-ness?
         {
             if (MdlIndex != -1)
             {
@@ -220,7 +221,7 @@ namespace SPICA.Formats.Generic.MaterialScript
                             }
                         }
 
-                        //TODO: assign the stage's const color
+                        //assign the stage's const color
                         stageColor = GetConstColor(Mtl, j);
 
                         //create layers based on combiner type
@@ -290,16 +291,68 @@ namespace SPICA.Formats.Generic.MaterialScript
                 default: txtString.AppendLine($"txt{idx}.filename = scriptPath + \"/{mat.Texture0Name}.png\""); break;
             }
 
-            txtString.AppendLine($"txt{idx}.name = \"{mat.Name}_txt{idx}\""); //set map name
-            txtString.AppendLine($"txt{idx}.preMultAlpha = false");             //disable pre-multiplied alpha
+            //set map name and disable pre-multiplied alpha
+            txtString.AppendLine($"txt{idx}.name = \"{mat.Name}_txt{idx}\""); 
+            txtString.AppendLine($"txt{idx}.preMultAlpha = false");
 
-            if (mat.MaterialParams.AlphaTest.Enabled)                           //if alpha test is enabled, disable alpha on the diffuse texture
+            //if alpha test is enabled, disable alpha on the diffuse texture
+            if (mat.MaterialParams.AlphaTest.Enabled)                           
                 txtString.AppendLine($"txt{idx}.alphasource = 2");              //TODO: ensure this doesn't interfere with decal textures (or anything else for that matter)
 
-            if (mat.MaterialParams.TextureSources[idx] > 0)                     //if texture uses non-default map channel, add the code to set it
+            //if texture uses non-default map channel, add the code to set it
+            if (mat.MaterialParams.TextureSources[idx] > 0)                     
                 txtString.AppendLine($"txt{idx}.coordinates.mapChannel = {mat.MaterialParams.TextureSources[idx]+1}");
 
-            //TODO: add support for additional mapping settings
+            //set translation if non-zero
+            if (mat.MaterialParams.TextureCoords[idx].Translation != new Vector2(0))
+            {
+                txtString.AppendLine($"txt{idx}.coordinates.U_Offset = {mat.MaterialParams.TextureCoords[idx].Translation.X}");
+                txtString.AppendLine($"txt{idx}.coordinates.V_Offset = {mat.MaterialParams.TextureCoords[idx].Translation.Y}");
+            }
+
+            //set rotation if non-zero (Max needs degrees, so convert)
+            if (mat.MaterialParams.TextureCoords[idx].Rotation != 0)
+                txtString.AppendLine($"txt{idx}.coordinates.W_Angle = {180*mat.MaterialParams.TextureCoords[idx].Rotation/Math.PI}");
+
+            //set scale if not one
+            if (mat.MaterialParams.TextureCoords[idx].Scale != new Vector2(1))
+            {
+                txtString.AppendLine($"txt{idx}.coordinates.U_Tiling = {mat.MaterialParams.TextureCoords[idx].Scale.X}");
+                txtString.AppendLine($"txt{idx}.coordinates.V_Tiling = {mat.MaterialParams.TextureCoords[idx].Scale.Y}");
+            }
+
+            //set map wrapping  //TODO: this sucks, do it better
+            //TODO: mirroring seems to mess with scaling. Correct it in here?
+            switch (mat.TextureMappers[idx].WrapU)
+            {
+                //SPICA.PICA.Commands.PICATextureWrap.Repeat //Max's Default
+                case PICATextureWrap.Mirror:
+                    txtString.AppendLine($"txt{idx}.coordinates.U_Mirror = true");
+                    break;
+                case PICATextureWrap.ClampToEdge:
+                    txtString.AppendLine($"--TODO: txt{idx} ClampToEdge U");
+                    break;
+                case PICATextureWrap.ClampToBorder:
+                    txtString.AppendLine($"--TODO: txt{idx} ClampToBorder U");
+                    break;
+            }
+            switch (mat.TextureMappers[idx].WrapV)
+            {
+                //SPICA.PICA.Commands.PICATextureWrap.Repeat //Max's Default
+                case PICATextureWrap.Mirror:
+                    txtString.AppendLine($"txt{idx}.coordinates.V_Mirror = true");
+                    break;
+                case PICATextureWrap.ClampToEdge:
+                    txtString.AppendLine($"--TODO: txt{idx} ClampToEdge V");
+                    break;
+                case PICATextureWrap.ClampToBorder:
+                    txtString.AppendLine($"--TODO: txt{idx} ClampToBorder V");
+                    break;
+            }
+
+            txtString.AppendLine($"--TODO: txt{idx} Mapping Type: {mat.MaterialParams.TextureCoords[idx].MappingType}");
+
+            //TODO: add support for additional mapping settings?
 
             return txtString.ToString();
         }
