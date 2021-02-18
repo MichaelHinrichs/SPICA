@@ -129,9 +129,7 @@ namespace SPICA.Rendering
                 {
                     if (!this.Shaders.ContainsKey(Shader.Name))
                     {
-                        VertexShader VSh = new VertexShader(Shader);
-                        this.Shaders.Add(Shader.Name, VSh);
-                        //System.IO.File.WriteAllText("D:/_REWorkspace/shader/gfl_pokemon/" + VSh.Name + ".vsh", VSh.CodeVtx);
+                        this.Shaders.Add(Shader.Name, new VertexShader(Shader));
                     }
                 }
 
