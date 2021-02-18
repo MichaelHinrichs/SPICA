@@ -25,6 +25,9 @@ namespace SPICA.WinForms.Formats
 
             BinaryReader Reader = new BinaryReader(Input);
 
+			if (Input.Length <= Header.Entries[0].Address)
+				return null;
+
             Input.Seek(Header.Entries[0].Address, SeekOrigin.Begin);
 
             uint MagicNum = Reader.ReadUInt32();
