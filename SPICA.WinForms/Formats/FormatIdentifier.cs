@@ -8,7 +8,6 @@ using SPICA.Formats.GFL2;
 using SPICA.Formats.GFL2.Model;
 using SPICA.Formats.GFL2.Motion;
 using SPICA.Formats.GFL2.Texture;
-using SPICA.Formats.GFLX;
 using SPICA.Formats.ModelBinary;
 using SPICA.Formats.MTFramework.Model;
 using SPICA.Formats.MTFramework.Shader;
@@ -79,10 +78,6 @@ namespace SPICA.WinForms.Formats
                     else if (Magic.StartsWith("CGFX"))
                     {
                         return Gfx.Open(FS);
-                    }
-                    else if (Magic.StartsWith("GFLXPAK"))
-                    {
-                        return LoadGflxPak(Reader);
                     }
                     else
                     {
@@ -218,11 +213,6 @@ namespace SPICA.WinForms.Formats
             {
                 MTShader = new MTShaderEffects(FS);
             }
-        }
-
-        private static H3D LoadGflxPak(BinaryReader br) {
-            H3D h3d = new GFLXPack(br).ToH3D();
-            return h3d;
         }
     }
 }

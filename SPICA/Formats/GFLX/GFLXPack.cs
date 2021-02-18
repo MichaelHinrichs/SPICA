@@ -1,5 +1,4 @@
-﻿using SPICA.Compression;
-using SPICA.Formats.CtrH3D;
+﻿using K4os.Compression.LZ4;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,10 +13,6 @@ namespace SPICA.Formats.GFLX
 
         List<byte[]> Files;
         List<string> Names;
-
-        public GFLXPack(BinaryReader br) {
-            //
-        }
 
         public GFLXPack(string path)
         {
@@ -46,7 +41,8 @@ namespace SPICA.Formats.GFLX
                     UInt64 offset = br.ReadUInt64();
                     br.BaseStream.Position = (long)offset;
                     byte[] compData = br.ReadBytes((int)zsize);
-                    byte[] decompData = LZ4.Decompress(compData, (int)size);
+                    byte[] decompData = new byte[size];
+                    var decoded = LZ4Codec.Decode(compData, 0, compData.Length, decompData, 0, decompData.Length);
                     string ext = string.Empty;
                     switch (BitConverter.ToUInt32(decompData, 0))
                     {
@@ -57,7 +53,7 @@ namespace SPICA.Formats.GFLX
                             ext = ".bnsh";
                             break;
                         case 0x20:
-                            ext = ".gfbmdl";
+                            ext = ".gfmdl";
                             break;
                         default:
                             ext = ".bin";
@@ -83,12 +79,6 @@ namespace SPICA.Formats.GFLX
         public string GetName(int ind) {
             if (ind >= FileCnt) return string.Empty;
             return Names[ind];
-        }
-
-        public H3D ToH3D()
-        {
-            H3D h3d = new H3D();
-            return h3d;
         }
     }
 }
