@@ -389,7 +389,7 @@ namespace SPICA.Formats.GFL2.Shader
             }
 
             Writer.Write(RawCommandBuffer.Length);
-            Writer.Write(1);
+            Writer.Write(FragCmds.Length);
             Writer.Write(CommandsFNV.HashCode);
             GFSection.WritePadding(Writer.BaseStream);
 

@@ -21,13 +21,7 @@ namespace SPICA.Formats.GFL2.Model.Mesh
         //for the indices, even those where the indices are always < 256.
         //You can make this store the indices more efficiently when MaxIndex
         //of the Indices buffer is < 256.
-        
-        //Hello007's note:
-        //Silly gdkchan, you can't have drip.
-        //I mean, efficient vertex indexing. You probably could if the format was not designed by Game Freak, but you can't.
-        //Doing so results in the indexing breaking completely.
-        //I don't blame you though, this really should be working.
-        public bool IsIdx8Bits = false; //DO NOT USE
+        public bool IsIdx8Bits = false;
 
         public byte[] RawBuffer;
 
@@ -55,6 +49,15 @@ namespace SPICA.Formats.GFL2.Model.Mesh
             }
 
             Indices = SubMesh.Indices;
+            IsIdx8Bits = true;
+            foreach (ushort Index in Indices)
+            {
+                if (Index > 0xFF)
+                {
+                    IsIdx8Bits = false;
+                    break;
+                }
+            }
             
             PrimitiveMode = SubMesh.PrimitiveMode;
             VertexStride = Parent.VertexStride;
@@ -63,10 +66,13 @@ namespace SPICA.Formats.GFL2.Model.Mesh
 
             foreach (PICAFixedAttribute Old in Parent.FixedAttributes)
             {
+                float Scale =
+                        Old.Name == PICAAttributeName.Color ||
+                        Old.Name == PICAAttributeName.BoneWeight ? GFMesh.Scales[1] : 1;
                 PICAFixedAttribute New = new PICAFixedAttribute()
                 {
                     Name = Old.Name,
-                    Value = Old.Value
+                    Value = Old.Value / Scale
                 };
                 FixedAttributes.Add(New);
             }
@@ -92,7 +98,6 @@ namespace SPICA.Formats.GFL2.Model.Mesh
             }
 
             Indices = NewIndices;
-            IsIdx8Bits = /*NewIndices.Length <= 0x100*/false;
             RawBuffer = VerticesConverter.GetBuffer(NewVertices, Attributes);
         }
     }

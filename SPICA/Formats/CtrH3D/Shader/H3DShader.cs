@@ -1,5 +1,4 @@
 ﻿using SPICA.Formats.Common;
-using SPICA.PICA.Shader;
 
 namespace SPICA.Formats.CtrH3D.Shader
 {
@@ -26,10 +25,5 @@ namespace SPICA.Formats.CtrH3D.Shader
         }
 
         private uint UserDefinedAddress; //SBZ
-
-        public ShaderBinary ToShaderBinary()
-        {
-            return new ShaderBinary(Program);
-        }
     }
 }

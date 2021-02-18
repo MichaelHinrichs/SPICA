@@ -22,7 +22,7 @@ namespace SPICA.Formats.Generic.CMIF
     public class CMIFFile
     {
         public const string CMIF_MAGIC = "CMIF";
-        public const int READER_VERSION = 7;
+        public const int READER_VERSION = 6;
 
         public List<H3DModel> models = new List<H3DModel>();
         public List<H3DTexture> textures = new List<H3DTexture>();
@@ -47,7 +47,7 @@ namespace SPICA.Formats.Generic.CMIF
                 throw new NotSupportedException("File version is too new! - " + backwardsCompatibility);
             }
 
-            uint stringTableOffset = dis.ReadUInt32();
+            uint stringTableOffset  = dis.ReadUInt32();
             uint contentTableOffset = dis.ReadUInt32();
 
             dis.BaseStream.Seek(contentTableOffset, SeekOrigin.Begin);
@@ -102,7 +102,7 @@ namespace SPICA.Formats.Generic.CMIF
         }
 
         public const string MAT_ANIME_MAGIC = "IFMA";
-        public const string SKL_ANIM_MAGIC = "IFSA";
+	    public const string SKL_ANIM_MAGIC = "IFSA";
 
         static H3DAnimation readSkeletalAnime(BinaryReader dis)
         {
@@ -211,8 +211,7 @@ namespace SPICA.Formats.Generic.CMIF
                 H3DAnimationElement[] tra = new H3DAnimationElement[3];
                 H3DAnimationElement[] sca = new H3DAnimationElement[3];
 
-                for (int n = 0; n < 3; n++)
-                {
+                for (int n = 0; n < 3; n++) {
                     H3DAnimationElement tn = new H3DAnimationElement()
                     {
                         Name = boneName,
@@ -423,7 +422,7 @@ namespace SPICA.Formats.Generic.CMIF
             string name = readStringFromOffset(dis);
             int width = dis.ReadUInt16();
             int height = dis.ReadUInt16();
-            byte[] Buffer = readLZ(dis, fileVersion);
+            byte[] Buffer = dis.ReadBytes(dis.ReadInt32());
 
             byte[] Output = new byte[Buffer.Length];
 
@@ -451,7 +450,7 @@ namespace SPICA.Formats.Generic.CMIF
                     case CMIFTextureFormat.RGB_A:
                         Format = PICATextureFormat.RGB8;
                         break;
-                    case CMIFTextureFormat.RGB565_5A1:
+                    case CMIFTextureFormat.RGB565:
                         Format = PICATextureFormat.RGB565;
                         break;
                 }
@@ -474,9 +473,6 @@ namespace SPICA.Formats.Generic.CMIF
                     {
                         switch (Format)
                         {
-                            case PICATextureFormat.RGB565:
-                                Format = PICATextureFormat.RGBA5551;
-                                break;
                             case PICATextureFormat.ETC1:
                                 Format = PICATextureFormat.ETC1A4;
                                 break;
@@ -497,24 +493,11 @@ namespace SPICA.Formats.Generic.CMIF
             return new H3DTexture(name, bmp, Format);
         }
 
-        public static byte[] readLZ(BinaryReader dis, uint fileVersion)
-        {
-            uint len = dis.ReadUInt32();
-            bool decompressLZSS = (fileVersion >= 7 && ((len >> 31 & 1) > 0));
-            len &= 0x7FFFFFFF;
-            byte[] data = dis.ReadBytes((int)len);
-            if (decompressLZSS)
-            {
-                data = Common.Compression.LZ11.decompress(data);
-            }
-            return data;
-        }
-
         public const string MODEL_MAGIC = "IFMD";
         public const string SKELETON_JOINT_MAGIC = "SKLJ";
         public const string MESH_MAGIC = "IFPL";
         public const string MATERIAL_MAGIC = "IFMT";
-        public const string TEVCONF_MAGIC = "TENV";
+	    public const string TEVCONF_MAGIC = "TENV";
 
         static H3DModel readModel(BinaryReader dis, uint fileVersion)
         {
@@ -639,8 +622,7 @@ namespace SPICA.Formats.Generic.CMIF
                 //Depth test
                 bool depthOpEnabled = dis.ReadBoolean();
                 mat.MaterialParams.DepthColorMask.Enabled = depthOpEnabled;
-                if (depthOpEnabled)
-                {
+                if (depthOpEnabled) {
                     byte depthOpByte = dis.ReadByte();
                     mat.MaterialParams.DepthColorMask.DepthFunc = (PICATestFunc)(depthOpByte & 7);
                     mat.MaterialParams.DepthColorMask.RedWrite = (depthOpByte & 8) > 0;
@@ -776,10 +758,9 @@ namespace SPICA.Formats.Generic.CMIF
                     throw new ArgumentException("Invalid mesh magic.");
                 }
 
-                string meshName = readStringFromOffset(dis);
+                string meshName = readStringFromOffset(dis);    //suprisingly, SPICA does not have support for object names
                 string materialName = readStringFromOffset(dis);
                 int renderLayer = dis.ReadByte();
-                H3DSubMeshSkinning skinning = H3DSubMeshSkinning.Smooth;
                 H3DMetaData meshMetaData;
                 if (fileVersion >= 4)
                 {
@@ -794,21 +775,6 @@ namespace SPICA.Formats.Generic.CMIF
                 else
                 {
                     meshMetaData = new H3DMetaData();
-                }
-                if (fileVersion >= 7)
-                {
-                    switch (dis.ReadByte() & 3)
-                    {
-                        case 0:
-                            skinning = H3DSubMeshSkinning.None;
-                            break;
-                        case 1:
-                            skinning = H3DSubMeshSkinning.Rigid;
-                            break;
-                        case 2:
-                            skinning = H3DSubMeshSkinning.Smooth;
-                            break;
-                    }
                 }
 
                 m.MeshNodesVisibility.Add(true);
@@ -903,16 +869,9 @@ namespace SPICA.Formats.Generic.CMIF
                                 case PICAAttributeName.BoneIndex:
                                     v.Indices = new BoneIndices();
                                     int indicesCount = dis.ReadByte();
-                                    for (int idx = 0; idx < 4; idx++)
+                                    for (int idx = 0; idx < indicesCount; idx++)
                                     {
-                                        if (idx < indicesCount)
-                                        {
-                                            v.Indices[idx] = dis.ReadUInt16();
-                                        }
-                                        else
-                                        {
-                                            v.Indices[idx] = -1;
-                                        }
+                                        v.Indices[idx] = dis.ReadUInt16();
                                     }
                                     break;
                                 case PICAAttributeName.BoneWeight:
@@ -987,6 +946,7 @@ namespace SPICA.Formats.Generic.CMIF
                             for (int Tri = 0; Tri < 3; Tri++)
                             {
                                 PICAVertex Vertex = Triangle[Tri];
+
                                 for (int i = 0; i < 4; i++)
                                 {
                                     ushort Index = (ushort)Vertex.Indices[i];
@@ -1013,10 +973,6 @@ namespace SPICA.Formats.Generic.CMIF
 
                                 for (int Index = 0; Index < 4; Index++)
                                 {
-                                    if (Vertex.Indices[Index] == -1)
-                                    {
-                                        continue;
-                                    }
                                     int BoneIndex = BoneIndices.IndexOf((ushort)Vertex.Indices[Index]);
 
                                     if (BoneIndex == -1)
@@ -1050,15 +1006,19 @@ namespace SPICA.Formats.Generic.CMIF
 
                         H3DSubMesh sm = new H3DSubMesh()
                         {
-                            Skinning = skinning,
+                            Skinning = H3DSubMeshSkinning.Smooth,
                             BoneIndicesCount = (ushort)BoneIndices.Count,
                             BoneIndices = BoneIndices.ToArray(),
                             Indices = Indices.ToArray()
                         };
-
-                        if (sm.BoneIndicesCount == 0)
+                        switch (sm.BoneIndicesCount)
                         {
-                            sm.Skinning = H3DSubMeshSkinning.None;
+                            case 0:
+                                sm.Skinning = H3DSubMeshSkinning.None;
+                                break;
+                            case 1:
+                                sm.Skinning = H3DSubMeshSkinning.Rigid;
+                                break;
                         }
                         SubMeshes.Add(sm);
                     }
@@ -1108,7 +1068,7 @@ namespace SPICA.Formats.Generic.CMIF
 
                 H3DMesh mesh = new H3DMesh(Vertices.Keys, Attributes, SubMeshes)
                 {
-                    Skinning = skinning == H3DSubMeshSkinning.Smooth ? H3DMeshSkinning.Smooth : H3DMeshSkinning.Rigid,
+                    Skinning = H3DMeshSkinning.Smooth,
                     MeshCenter = (MinVector + MaxVector) * 0.5f,
                     MaterialIndex = (ushort)m.Materials.Find(materialName)
                 };
@@ -1192,7 +1152,7 @@ namespace SPICA.Formats.Generic.CMIF
         {
             ETC1,
             RGB_A,
-            RGB565_5A1
+            RGB565
         }
 
         public enum MetaDataValueType
