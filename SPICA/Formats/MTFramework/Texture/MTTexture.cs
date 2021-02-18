@@ -12,6 +12,7 @@ namespace SPICA.Formats.MTFramework.Texture
 
         public MTTextureFormat Format;
 
+        public byte MipmapSize;
         public int Width;
         public int Height;
 
@@ -27,15 +28,18 @@ namespace SPICA.Formats.MTFramework.Texture
             uint Word1 = Reader.ReadUInt32();
             uint Word2 = Reader.ReadUInt32();
 
-            int  Version = (Word0 >>  0) & 0xfff;
-            int  Shift   = (Word0 >> 24) & 0xf;
-            uint Width   = (Word1 >>  6) & 0x1fff;
-            uint Height  = (Word1 >> 19) & 0x1fff;
-            uint Format  = (Word2 >>  8) & 0xff;
-            uint Aspect  = (Word2 >> 16) & 0x1fff;
+            int  Version      = (Word0 >>  0) & 0xfff;
+            int  Shift        = (Word0 >> 24) & 0xf;
+            uint MipmapSize   = (Word1 >>  0) & 0x3f;
+            uint Width        = (Word1 >>  6) & 0x1fff;
+            uint Height       = (Word1 >> 19) & 0x1fff;
+            uint TextureCount = (Word2 >>  0) & 0xff;
+            uint Format       = (Word2 >>  8) & 0xff;
+            uint Aspect       = (Word2 >> 16) & 0x1fff;
 
-            this.Width  = (int)Width  << Shift;
-            this.Height = (int)Height << Shift;
+            this.MipmapSize   = (byte)MipmapSize;
+            this.Width        = (int)Width  << Shift;
+            this.Height       = (int)Height << Shift;
 
             this.Format = (MTTextureFormat)Format;
 
@@ -43,12 +47,15 @@ namespace SPICA.Formats.MTFramework.Texture
 
             if (Version > 0xa3)
             {
-                Reader.ReadUInt32();
+                long[] MipmapOffsets = new long[MipmapSize];
+                for (int i = 0; i < MipmapSize; i++)
+                {
+                    MipmapOffsets[i] = Reader.ReadUInt32();
+                }
             }
 
-            RawBuffer = Reader.ReadBytes((int)(
-                Reader.BaseStream.Length -
-                Reader.BaseStream.Position));
+            int readLength = (int)(Reader.BaseStream.Length - Reader.BaseStream.Position);
+            RawBuffer = Reader.ReadBytes(readLength);
         }
 
         public H3DTexture ToH3DTexture()
@@ -57,10 +64,11 @@ namespace SPICA.Formats.MTFramework.Texture
 
             Texture.RawBufferXPos = RawBuffer;
 
-            Texture.Name   = Name;
-            Texture.Format = Format.ToPICATextureFormat();
-            Texture.Width  = Width;
-            Texture.Height = Height;
+            Texture.Name       = Name;
+            Texture.Format     = Format.ToPICATextureFormat();
+            Texture.MipmapSize = MipmapSize;
+            Texture.Width      = Width;
+            Texture.Height     = Height;
 
             return Texture;
         }
