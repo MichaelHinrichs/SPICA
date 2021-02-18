@@ -52,6 +52,11 @@ namespace SPICA.Formats.Generic.COLLADA
             return VectorStr(v);
         }
 
+        public static string Vector2l1Str(Vector4 v)
+        {
+            return FormattableString.Invariant($"{v.W} {0}");
+        }
+
         public static string MatrixStr(Matrix3x4 m)
         {
             return string.Format(CultureInfo.InvariantCulture, Matrix3x4Format,

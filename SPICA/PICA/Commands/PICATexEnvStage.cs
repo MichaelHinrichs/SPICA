@@ -3,17 +3,17 @@
 namespace SPICA.PICA.Commands
 {
     public class PICATexEnvStage
-    {
-        public PICATexEnvSource   Source;
-        public PICATexEnvOperand  Operand;
-        public PICATexEnvCombiner Combiner;
-        public RGBA               Color;
-        public PICATexEnvScale    Scale;
+    {                                           // V color and alpha for each
+        public PICATexEnvSource   Source;       //the three sources (material, vertex color, constant, etc)
+        public PICATexEnvOperand  Operand;      //what channel to use for each source
+        public PICATexEnvCombiner Combiner;     //combine mode (replace, modulate, interpolate, etc)
+        public RGBA               Color;        //some random color, no idea where it's used
+        public PICATexEnvScale    Scale;        //
 
         public bool UpdateColorBuffer;
         public bool UpdateAlphaBuffer;
 
-        public bool IsColorPassThrough
+        public bool IsColorPassThrough      //true if this stage does not modify the color
         {
             get
             {
@@ -26,7 +26,7 @@ namespace SPICA.PICA.Commands
             }
         }
 
-        public bool IsAlphaPassThrough
+        public bool IsAlphaPassThrough      //true if this stage does not modify the alpha
         {
             get
             {

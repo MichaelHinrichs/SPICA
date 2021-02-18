@@ -30,13 +30,15 @@ namespace SPICA.WinForms.GUI
 
             Rectangle PageRect = default(Rectangle);
 
-            switch (Alignment)
+            PageRect = RemoveMargin(DisplayRectangle, 2, 2, 2, 2);
+
+            /*switch (Alignment)
             {
                 case TabAlignment.Top:    PageRect = RemoveMargin(DisplayRectangle, 0, 4, 4, 4); break;
                 case TabAlignment.Left:   PageRect = RemoveMargin(DisplayRectangle, 4, 0, 4, 4); break;
                 case TabAlignment.Right:  PageRect = RemoveMargin(DisplayRectangle, 4, 4, 0, 4); break;
                 case TabAlignment.Bottom: PageRect = RemoveMargin(DisplayRectangle, 4, 4, 4, 0); break;
-            }
+            }*/
 
             e.Graphics.FillRectangle(new SolidBrush(BackgroundColor), PageRect);
 
@@ -45,7 +47,7 @@ namespace SPICA.WinForms.GUI
                 bool IsSelected = Index == SelectedIndex;
                 bool VertAlign = (Alignment & TabAlignment.Left) != 0;
 
-                Rectangle Rect = RemoveMargin(GetTabRect(Index), 2, 2, 2, 2);
+                Rectangle Rect = GetTabRect(Index);// RemoveMargin(GetTabRect(Index), 2, 2, 2, 2);
                 SizeF TextSize = e.Graphics.MeasureString(TabPages[Index].Text, Font);
 
                 if (IsSelected) e.Graphics.FillRectangle(new SolidBrush(BackgroundColor), Rect);
