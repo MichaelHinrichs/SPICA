@@ -41,7 +41,7 @@ namespace SPICA.Formats.GFL2.Model
             }
             else
             {
-                Parent = null;
+                Parent = "Origin";
             }
         }
 

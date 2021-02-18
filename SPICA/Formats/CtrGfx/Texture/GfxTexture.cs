@@ -1,5 +1,4 @@
-﻿using SPICA.Formats.CtrH3D.Texture;
-using SPICA.PICA.Commands;
+﻿using SPICA.PICA.Commands;
 using SPICA.Serialization.Attributes;
 
 namespace SPICA.Formats.CtrGfx.Texture
