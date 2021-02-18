@@ -91,6 +91,11 @@ namespace SPICA.Formats.CtrH3D.Texture
             Width  = (int)BitUtils.Pow2RoundDown((uint)Img.Width);
             Height = (int)BitUtils.Pow2RoundDown((uint)Img.Height);
 
+            while (Width < 8)
+                Width *= 2;
+            while (Height < 8)
+                Height *= 2;
+
             if (Img.Width  != Width ||
                 Img.Height != Height)
             {
