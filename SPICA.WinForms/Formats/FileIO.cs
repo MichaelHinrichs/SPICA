@@ -72,8 +72,8 @@ namespace SPICA.WinForms.Formats
                 SaveDlg.Filter = 
                     "COLLADA 1.4.1|*.dae" +
                     "|Valve StudioMdl|*.smd" +
-                    "|Binary Ctr H3D|*.bch" /*+
-                    "|Game Freak Model|*.gfbmdl"*/;
+                    "|Binary Ctr H3D|*.bch" +
+                    "|Game Freak Model|*.gfbmdl";
 
                 SaveDlg.FileName = "Model";
 
